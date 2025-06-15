@@ -1,6 +1,6 @@
 package gieraga.vinylove.model;
 
-enum OfferStatus {
+public enum OfferStatus {
     AVAILABLE, // Dostępna do wypożyczenia
     RENTED,    // Aktualnie wypożyczona
     HIDDEN,    // Ukryta przez właściciela, niewidoczna w wyszukiwaniach

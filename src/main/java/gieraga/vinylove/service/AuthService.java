@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -44,7 +45,8 @@ public class AuthService {
         user.setUsername(registerUserDto.getUsername());
         user.setEmail(registerUserDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerUserDto.getPassword()));
-        user.setRole(UserRole.ROLE_USER); // Domyślna rola dla nowego użytkownika
+        user.setRole(UserRole.ROLE_USER);
+        user.setBalance(new BigDecimal("100.00"));
         user.setActive(true);
         return userRepo.save(user);
     }

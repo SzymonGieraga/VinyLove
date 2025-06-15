@@ -5,9 +5,10 @@ import Register from './components/Register';
 import Home from './components/Home';
 import authService from './services/authService';
 import './App.css';
-
-import OffersListPage from './components/OffersListPage';
 import UserProfile from './components/UserProfile';
+import ProfileDropdown from './components/ProfileDropdown';
+import AddOfferPage from "./components/AddOfferPage";
+import OfferDetailsPage from "./components/OfferDetailsPage";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -37,19 +38,14 @@ function App() {
             </div>
             <div className="navbar-menu">
               <div className="navbar-start">
-                <Link to="/offers" className="navbar-item">Przeglądaj Oferty</Link>
+                {/* Usunięto link /offers, ponieważ logo prowadzi do strony głównej */}
                 {currentUser && (
                     <Link to="/my-profile" className="navbar-item">Mój Profil</Link>
                 )}
               </div>
               {currentUser ? (
                   <div className="navbar-end">
-                    <span className="navbar-item">Witaj, {currentUser.username}!</span>
-                    <div className="navbar-item">
-                      <button onClick={handleLogout} className="button is-light">
-                        Wyloguj
-                      </button>
-                    </div>
+                    <ProfileDropdown user={currentUser} onLogout={handleLogout} />
                   </div>
               ) : (
                   <div className="navbar-end">
@@ -66,20 +62,16 @@ function App() {
 
           <div className="container mt-3">
             <Routes>
-
-              <Route path="/" element={<OffersListPage />} />
-              <Route path="/offers" element={<OffersListPage />} />
+              <Route path="/" element={<Home user={currentUser} />} />
+              <Route path="/home" element={<Home user={currentUser} />} />
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/my-profile" element={currentUser ? <UserProfile /> : <Navigate to="/login" />} />
 
-              <Route
-                  path="/home"
-                  element={currentUser ? <Home /> : <Navigate to="/login" />}
-              />
-              <Route
-                  path="/my-profile"
-                  element={currentUser ? <UserProfile /> : <Navigate to="/login" />}
-              />
+              <Route path="/add-offer" element={currentUser ? <AddOfferPage /> : <Navigate to="/login" />} />
+
+              <Route path="/offer/:id" element={<OfferDetailsPage />} />
+
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -34,14 +36,16 @@ public class User {
     private UserRole role;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private boolean active;
 
     private String profileImageUrl;
 
     @Lob
     private String description;
 
-    // Zaktualizowane relacje
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal balance;
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecordOffer> ownedOffers;
 
@@ -55,7 +59,6 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "offer_id"))
     private Set<RecordOffer> observedOffers;
 
-    // NOWE RELACJE:
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses;
 

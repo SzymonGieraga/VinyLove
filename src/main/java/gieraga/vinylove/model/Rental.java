@@ -18,24 +18,26 @@ public class Rental {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Użytkownik, który wypożycza płytę
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "renter_id", nullable = false)
     private User renter;
 
-    // Oferta, której dotyczy wypożyczenie
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_offer_id", nullable = false)
     private RecordOffer recordOffer;
 
     @Column(nullable = false)
-    private LocalDate rentalDate; // Data rozpoczęcia wypożyczenia
+    private LocalDate rentalDate;
 
     @Column(nullable = false)
-    private LocalDate returnDate; // Przewidywana data zwrotu
+    private LocalDate returnDate;
 
     @Column(nullable = false)
     private String deliveryAddress;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RentalStatus status;
 
     @Column(nullable = false)
     private String deliveryMethod;
