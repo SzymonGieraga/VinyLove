@@ -11,4 +11,5 @@ public class OfferDetailsDto {
     private String coverImageUrl;
     private String audioSampleUrl;
     private String ownerUsername;
+    private String ownerProfileImageUrl;
 }

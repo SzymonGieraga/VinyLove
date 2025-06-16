@@ -2,6 +2,7 @@ package gieraga.vinylove.converter;
 
 import gieraga.vinylove.dto.OfferDto;
 
+import gieraga.vinylove.dto.UserOfferDto;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.dto.OfferDetailsDto;
 import org.springframework.stereotype.Component;
@@ -30,10 +31,22 @@ public class OfferConverter {
         dto.setDescription(entity.getDescription());
         dto.setCoverImageUrl(entity.getCoverImageUrl());
         dto.setAudioSampleUrl(entity.getAudioSampleUrl());
-        // Dołączamy nazwę właściciela oferty
+
         if (entity.getOwner() != null) {
             dto.setOwnerUsername(entity.getOwner().getUsername());
+            dto.setOwnerProfileImageUrl(entity.getOwner().getProfileImageUrl());
         }
+        return dto;
+    }
+
+    public UserOfferDto toUserOfferDto(RecordOffer entity) {
+        if (entity == null) return null;
+        UserOfferDto dto = new UserOfferDto();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setArtists(entity.getArtists());
+        dto.setCoverImageUrl(entity.getCoverImageUrl());
+        dto.setStatus(entity.getStatus());
         return dto;
     }
 }

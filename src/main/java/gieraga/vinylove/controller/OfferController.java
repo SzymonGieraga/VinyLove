@@ -26,26 +26,27 @@ public class OfferController {
 
     private final OfferService offerService;
 
-    @GetMapping
-    public ResponseEntity<Page<OfferDto>> getOffers(
-            @PageableDefault(size = 9, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<OfferDto> offers = offerService.getAvailableOffers(pageable);
-        return ResponseEntity.ok(offers);
-    }
-
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<RecordOffer> createOffer(
+    public ResponseEntity<OfferDetailsDto> createOffer(
             @RequestPart("offer") CreateOfferDto dto,
             @RequestPart(value = "coverImage", required = false) MultipartFile coverImage,
             @RequestPart(value = "audioSample", required = false) MultipartFile audioSample
     ) {
-        RecordOffer createdOffer = offerService.createOffer(dto, coverImage, audioSample);
-        return new ResponseEntity<>(createdOffer, HttpStatus.CREATED);
+        OfferDetailsDto createdOfferDto = offerService.createOffer(dto, coverImage, audioSample);
+        return new ResponseEntity<>(createdOfferDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OfferDetailsDto> getOfferDetails(@PathVariable Long id) {
         OfferDetailsDto offerDetails = offerService.getOfferById(id);
         return ResponseEntity.ok(offerDetails);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<OfferDto>> getOffers(
+            @RequestParam(required = false) String query,
+            @PageableDefault(size = 9, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<OfferDto> offers = offerService.getAvailableOffers(query, pageable);
+        return ResponseEntity.ok(offers);
     }
 }

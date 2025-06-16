@@ -3,15 +3,16 @@ package gieraga.vinylove.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Entity
 public class RecordReview {
 
@@ -22,14 +23,16 @@ public class RecordReview {
     @Min(1)
     @Max(5)
     @Column(nullable = false)
-    private int rating; // Ocena w skali 1-5
+    private int rating;
 
-    // Użytkownik, który wystawił recenzję
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
-    // Płyta, której dotyczy recenzja
+    private String comment;
+
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_offer_id", nullable = false)
     private RecordOffer recordOffer;

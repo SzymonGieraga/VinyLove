@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import OfferList from './OfferList';
 import { Link } from 'react-router-dom';
+import SearchBar from './SearchBar';
 
 const Home = ({ user }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+
     return (
         <div className="container">
             <header className="jumbotron">
@@ -12,7 +15,6 @@ const Home = ({ user }) => {
                         ? 'Możesz teraz dodawać własne oferty i wypożyczać płyty od innych.'
                         : 'Przeglądaj naszą kolekcję płyt. Zaloguj się, aby uzyskać pełną funkcjonalność.'}
                 </p>
-
                 {user && (
                     <Link to="/add-offer" className="button is-primary" style={{marginTop: '1rem'}}>
                         Dodaj nową ofertę
@@ -21,8 +23,9 @@ const Home = ({ user }) => {
             </header>
 
             <div className="offers-section">
-                <h2 style={{textAlign: 'center', marginBottom: '2rem'}}>Najnowsze Oferty</h2>
-                <OfferList />
+                <h2 style={{textAlign: 'center', marginBottom: '1rem'}}>Najnowsze Oferty</h2>
+                <SearchBar onSearch={(query) => setSearchTerm(query)} />
+                <OfferList searchTerm={searchTerm} />
             </div>
         </div>
     );

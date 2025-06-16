@@ -9,6 +9,7 @@ import UserProfile from './components/UserProfile';
 import ProfileDropdown from './components/ProfileDropdown';
 import AddOfferPage from "./components/AddOfferPage";
 import OfferDetailsPage from "./components/OfferDetailsPage";
+import UserProfilePage from './components/UserProfilePage';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -71,6 +72,9 @@ function App() {
               <Route path="/add-offer" element={currentUser ? <AddOfferPage /> : <Navigate to="/login" />} />
 
               <Route path="/offer/:id" element={<OfferDetailsPage />} />
+
+              <Route path="/my-profile" element={currentUser ? <Navigate to={`/profile/${currentUser.username}`} /> : <Navigate to="/login" />} />
+              <Route path="/profile/:username" element={<UserProfilePage />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

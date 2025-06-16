@@ -17,6 +17,10 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AddressType type;
+
     @Column(nullable = false)
     private String street;
 
@@ -29,7 +33,6 @@ public class Address {
     @Column(nullable = false)
     private String country;
 
-    // Relacja do użytkownika, który jest właścicielem tego adresu
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

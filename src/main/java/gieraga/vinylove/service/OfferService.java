@@ -1,9 +1,11 @@
 package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
+import gieraga.vinylove.dto.AddressDto;
 import gieraga.vinylove.dto.CreateOfferDto;
 import gieraga.vinylove.dto.OfferDetailsDto;
 import gieraga.vinylove.dto.OfferDto;
+import gieraga.vinylove.model.Address;
 import gieraga.vinylove.model.OfferStatus;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.model.User;
@@ -34,7 +36,7 @@ public class OfferService {
     }
 
     @Transactional
-    public RecordOffer createOffer(CreateOfferDto dto, MultipartFile coverImage, MultipartFile audioSample) {
+    public OfferDetailsDto createOffer(CreateOfferDto dto, MultipartFile coverImage, MultipartFile audioSample) {
         User owner = authService.getAuthenticatedUser();
         if (owner == null) {
             throw new IllegalStateException("Nie znaleziono zalogowanego użytkownika.");
@@ -43,16 +45,27 @@ public class OfferService {
         String coverImageUrl = fileStorageService.store(coverImage);
         String audioSampleUrl = fileStorageService.store(audioSample);
 
+        Address returnAddress = new Address();
+        returnAddress.setUser(owner);
+        returnAddress.setType(dto.getReturnAddress().getType());
+        returnAddress.setStreet(dto.getReturnAddress().getStreet());
+        returnAddress.setCity(dto.getReturnAddress().getCity());
+        returnAddress.setPostalCode(dto.getReturnAddress().getPostalCode());
+        returnAddress.setCountry(dto.getReturnAddress().getCountry());
+
         RecordOffer offer = new RecordOffer();
+        offer.setOwner(owner);
+        offer.setReturnAddress(returnAddress);
         offer.setTitle(dto.getTitle());
         offer.setArtists(dto.getArtists());
         offer.setDescription(dto.getDescription());
         offer.setCoverImageUrl(coverImageUrl);
         offer.setAudioSampleUrl(audioSampleUrl);
-        offer.setOwner(owner);
         offer.setStatus(OfferStatus.AVAILABLE);
 
-        return recordOfferRepo.save(offer);
+        RecordOffer savedOffer = recordOfferRepo.save(offer);
+
+        return offerConverter.toDetailsDto(savedOffer);
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +73,17 @@ public class OfferService {
         RecordOffer offer = recordOfferRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono oferty o ID: " + id));
         return offerConverter.toDetailsDto(offer);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OfferDto> getAvailableOffers(String query, Pageable pageable) {
+        Page<RecordOffer> offersPage;
+        if (query != null && !query.isBlank()) {
+            offersPage = recordOfferRepo.searchAvailableOffers(OfferStatus.AVAILABLE, query, pageable);
+        } else {
+            offersPage = recordOfferRepo.findByStatus(OfferStatus.AVAILABLE, pageable);
+        }
+        return offersPage.map(offerConverter::toDto);
     }
 
 }

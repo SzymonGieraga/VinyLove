@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/reviews/offer/{offerId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/profile").permitAll()
                         .requestMatchers("/api/rentals/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/offers").permitAll()
 
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
