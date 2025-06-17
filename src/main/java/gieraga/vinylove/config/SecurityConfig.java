@@ -40,17 +40,24 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-
+                        // --- Publiczne endpointy ---
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/offer/{offerId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/profile").permitAll()
-                        .requestMatchers("/api/rentals/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/offers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll() // Obejmuje /api/offers i /api/offers/{id}
+                        .requestMatchers(HttpMethod.GET, "/api/offers/{offerId}/reviews").permitAll()
 
+                        // --- Chronione endpointy (dla zalogowanych użytkowników) ---
+                        .requestMatchers(HttpMethod.POST, "/api/offers").authenticated()
+                        .requestMatchers("/api/rentals/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/offers/{offerId}/reviews").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/{username}/reviews").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
+
+                        // --- Endpointy Admina ---
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
+                        // Każde inne żądanie wymaga uwierzytelnienia
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

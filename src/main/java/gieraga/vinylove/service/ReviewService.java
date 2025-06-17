@@ -3,13 +3,14 @@ package gieraga.vinylove.service;
 import gieraga.vinylove.dto.CreateReviewDto;
 import gieraga.vinylove.dto.ReviewDto;
 import gieraga.vinylove.model.*;
-import gieraga.vinylove.repo.RecordOfferRepo;
-import gieraga.vinylove.repo.RecordReviewRepo;
-import gieraga.vinylove.repo.RentalRepo;
+import gieraga.vinylove.repo.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import gieraga.vinylove.dto.CreateReviewDto;
+import gieraga.vinylove.dto.CreateUserReviewDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,8 @@ public class ReviewService {
     private final RecordOfferRepo offerRepo;
     private final RentalRepo rentalRepo;
     private final AuthService authService;
+    private final UserRepo userRepo;
+    private final UserReviewRepo userReviewRepo;
 
     @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsForOffer(Long offerId) {
@@ -58,5 +61,32 @@ public class ReviewService {
         dto.setHasRented(hasRented);
 
         return dto;
+    }
+
+    @Transactional
+    public UserReview createUserReview(String reviewedUsername, CreateUserReviewDto dto) {
+        User reviewer = authService.getAuthenticatedUser();
+        User reviewedUser = userRepo.findByUsername(reviewedUsername)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (reviewer.equals(reviewedUser)) {
+            throw new IllegalStateException("Nie możesz ocenić samego siebie.");
+        }
+
+        UserReview review = new UserReview();
+        review.setReviewer(reviewer);
+        review.setReviewedUser(reviewedUser);
+        review.setRating(dto.getRating());
+        review.setComment(dto.getComment());
+
+        return userReviewRepo.save(review);
+    }
+
+    public void deleteUserReview(Long reviewId) {
+        userReviewRepo.deleteById(reviewId);
+    }
+
+    public void deleteRecordReview(Long reviewId) {
+        reviewRepo.deleteById(reviewId);
     }
 }

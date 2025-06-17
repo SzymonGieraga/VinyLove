@@ -10,4 +10,6 @@ import java.util.List;
 public interface RecordReviewRepo extends JpaRepository<RecordReview, Long> {
 
     List<RecordReview> findByRecordOfferIdOrderByCreatedAtDesc(Long offerId);
+
+    List<RecordReview> findByAuthorUsername(String username);
 }

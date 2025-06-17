@@ -9,4 +9,7 @@ public class UserProfileDto {
     private String description;
     private String profileImageUrl;
     private List<UserOfferDto> offers;
+
+    private List<SimpleReviewDto> writtenReviews;
+    private List<SimpleReviewDto> reviewsAboutUser;
 }

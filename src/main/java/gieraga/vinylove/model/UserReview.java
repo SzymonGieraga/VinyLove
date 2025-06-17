@@ -3,16 +3,17 @@ package gieraga.vinylove.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Getter
+@Setter
 public class UserReview {
 
     @Id
@@ -23,6 +24,10 @@ public class UserReview {
     @Max(5)
     @Column(nullable = false)
     private int rating;
+
+    private String comment;
+
+    private LocalDateTime createdAt;
 
     // Użytkownik wystawiający ocenę
     @ManyToOne(fetch = FetchType.LAZY)
