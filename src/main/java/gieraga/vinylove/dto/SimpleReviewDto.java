@@ -10,8 +10,11 @@ public class SimpleReviewDto {
     private String comment;
     private LocalDateTime createdAt;
 
-    // Pola do identyfikacji recenzji
-    private String reviewType; // "RECORD" lub "USER"
-    private String subjectName; // Tytuł albumu lub nazwa ocenionego użytkownika
-    private String reviewerUsername; // Kto napisał recenzję
+    private String reviewType;
+    private String reviewerUsername;
+    private String reviewerProfileImageUrl;
+
+    private Long subjectId;
+    private String subjectName;
+    private String subjectImageUrl;
 }

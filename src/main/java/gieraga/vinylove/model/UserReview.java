@@ -38,4 +38,9 @@ public class UserReview {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewed_user_id", nullable = false)
     private User reviewedUser;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

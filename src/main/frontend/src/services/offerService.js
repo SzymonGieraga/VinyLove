@@ -1,22 +1,11 @@
 import api from './api';
 
 const getOffers = (query = '', page = 0, size = 9) => {
-    return api.get('/offers', {
-        params: {
-            query: query,
-            page: page,
-            size: size,
-            sort: 'id,desc'
-        }
-    });
+    return api.get('/offers', { params: { query, page, size, sort: 'id,desc' } });
 };
 
 const createOffer = (formData) => {
-    return api.post('/offers', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+    return api.post('/offers', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 };
 
 const getOfferDetails = (id) => {
@@ -31,13 +20,12 @@ const addReviewForOffer = (offerId, reviewData) => {
     return api.post(`/offers/${offerId}/reviews`, reviewData);
 };
 
-
 const offerService = {
     getOffers,
     createOffer,
     getOfferDetails,
     getReviewsForOffer,
-    addReviewForOffer
+    addReviewForOffer,
 };
 
 export default offerService;

@@ -3,6 +3,7 @@ package gieraga.vinylove.controller;
 import gieraga.vinylove.dto.CreateReviewDto;
 import gieraga.vinylove.dto.CreateUserReviewDto;
 import gieraga.vinylove.dto.ReviewDto;
+import gieraga.vinylove.dto.SimpleReviewDto;
 import gieraga.vinylove.model.RecordReview;
 import gieraga.vinylove.model.UserReview;
 import gieraga.vinylove.service.ReviewService;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api") // Ustawiamy jeden, wspólny prefiks dla całego API
+@RequestMapping("/api") // Zmieniono adres bazowy na /api
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -23,23 +24,23 @@ public class ReviewController {
 
     // --- Endpointy dla recenzji ofert ---
     @GetMapping("/offers/{offerId}/reviews")
-    public ResponseEntity<List<ReviewDto>> getReviewsForOffer(@PathVariable Long offerId) {
+    public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable Long offerId) {
         return ResponseEntity.ok(reviewService.getReviewsForOffer(offerId));
     }
 
     @PostMapping("/offers/{offerId}/reviews")
-    public ResponseEntity<RecordReview> addReviewForOffer(@PathVariable Long offerId, @Valid @RequestBody CreateReviewDto dto) {
-        RecordReview newReview = reviewService.createReview(offerId, dto);
-        return new ResponseEntity<>(newReview, HttpStatus.CREATED);
+    public ResponseEntity<ReviewDto> addReviewForOffer(@PathVariable Long offerId, @Valid @RequestBody CreateReviewDto dto) {
+        ReviewDto newReviewDto = reviewService.createReview(offerId, dto);
+        return new ResponseEntity<>(newReviewDto, HttpStatus.CREATED);
     }
 
-    // --- Endpoint dla recenzji użytkowników ---
     @PostMapping("/users/{username}/reviews")
-    public ResponseEntity<UserReview> addUserReview(@PathVariable String username, @Valid @RequestBody CreateUserReviewDto dto) {
-        UserReview newReview = reviewService.createUserReview(username, dto);
+    public ResponseEntity<SimpleReviewDto> addUserReview(@PathVariable String username, @Valid @RequestBody CreateUserReviewDto dto) {
+        SimpleReviewDto newReview = reviewService.createUserReview(username, dto);
         return new ResponseEntity<>(newReview, HttpStatus.CREATED);
     }
 
+    // --- Endpointy do usuwania ---
     @DeleteMapping("/reviews/record/{id}")
     public ResponseEntity<Void> deleteRecordReview(@PathVariable Long id) {
         reviewService.deleteRecordReview(id);

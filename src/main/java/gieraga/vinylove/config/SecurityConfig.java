@@ -40,24 +40,26 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // --- Publiczne endpointy ---
+                        // --- 1. ENDPOINTY PUBLICZNE (dostępne dla wszystkich) ---
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/{username}/profile").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll() // Obejmuje /api/offers i /api/offers/{id}
+                        .requestMatchers(HttpMethod.GET, "/api/users/{username}/profile").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/{offerId}/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{username}/reviews").permitAll()
 
-                        // --- Chronione endpointy (dla zalogowanych użytkowników) ---
+                        // --- 2. ENDPOINTY CHRONIONE (dla zalogowanych użytkowników) ---
                         .requestMatchers(HttpMethod.POST, "/api/offers").authenticated()
-                        .requestMatchers("/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/offers/{offerId}/reviews").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users/{username}/reviews").authenticated()
+                        .requestMatchers("/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
 
-                        // --- Endpointy Admina ---
+                        // --- 3. ENDPOINTY ADMINA ---
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
-                        // Każde inne żądanie wymaga uwierzytelnienia
+                        // --- 4. POZOSTAŁE ŻĄDANIA ---
+                        // Każde inne, nie wymienione powyżej żądanie wymaga uwierzytelnienia
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

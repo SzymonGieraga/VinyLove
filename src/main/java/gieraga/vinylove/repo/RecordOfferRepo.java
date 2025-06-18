@@ -22,4 +22,6 @@ public interface RecordOfferRepo extends JpaRepository<RecordOffer, Long> {
             "LOWER(o.artists) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(o.owner.username) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<RecordOffer> searchAvailableOffers(@Param("status") OfferStatus status, @Param("query") String query, Pageable pageable);
+
+
 }

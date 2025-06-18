@@ -1,33 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import UserOffersTab from './UserOffersTab';
+import ProfileReviewsTab from './ProfileReviewsTab';
+import UserActionModal from './UserActionModal';
+import UserReviewForm from "./UserReviewForm"; // Nowy import
 
 const UserProfilePage = () => {
     const { username } = useParams();
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [reviewsData, setReviewsData] = useState([]);
     const [activeTab, setActiveTab] = useState('offers');
     const [isOwner, setIsOwner] = useState(false);
+    const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    const fetchProfileData = useCallback(() => {
+        setLoading(true);
+        userService.getUserProfile(username)
+            .then(response => {
+                setProfileData(response.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("Błąd ładowania danych profilu:", error);
+                setLoading(false);
+            });
+    }, [username]);
 
     useEffect(() => {
-        const currentUser = authService.getCurrentUser();
-        setIsOwner(currentUser && currentUser.username === username);
-
-        setLoading(true);
-        Promise.all([
-            userService.getUserProfile(username),
-        ]).then(([profileResponse]) => {
-            setProfileData(profileResponse.data);
-            setLoading(false);
-        }).catch(error => {
-            console.error("Błąd ładowania danych profilu:", error);
-            setLoading(false);
-        });
-
-    }, [username]);
+        const user = authService.getCurrentUser();
+        setCurrentUser(user);
+        setIsOwner(user && user.username === username);
+        fetchProfileData();
+    }, [username, fetchProfileData]);
 
     if (loading) return <p className="text-center">Ładowanie profilu...</p>;
     if (!profileData) return <p className="text-center">Nie znaleziono użytkownika.</p>;
@@ -35,27 +42,62 @@ const UserProfilePage = () => {
     const { description, profileImageUrl, offers } = profileData;
 
     return (
-        <div className="profile-container">
-            <header className="profile-header">
-                <img src={profileImageUrl || 'https://placehold.co/150x150/3273dc/ffffff?text=U'} alt={username} className="profile-avatar" />
-                <div className="profile-info">
-                    <h1>{username}</h1>
-                    <p>{description || "Ten użytkownik nie dodał jeszcze opisu."}</p>
+        <>
+            <UserActionModal
+                isOpen={isActionModalOpen}
+                onClose={() => setIsActionModalOpen(false)}
+                title={isOwner ? "Edytuj profil" : `Oceń użytkownika ${username}`}
+            >
+                {isOwner ? (
+                    <p>Formularz edycji profilu w budowie...</p>
+                ) : (
+                    <UserReviewForm
+                        reviewedUsername={username}
+                        onSuccess={() => {
+                            setIsActionModalOpen(false);
+                            alert("Dziękujemy za Twoją opinię!");
+                            fetchProfileData();
+                        }}
+                    />
+                )}
+            </UserActionModal>
+
+            <div className="profile-container">
+                <header className="profile-header">
+                    <img src={profileImageUrl || 'https://placehold.co/150x150/3273dc/ffffff?text=U'} alt={username} className="profile-avatar" />
+                    <div className="profile-info">
+                        <h1>{username}</h1>
+                        <p>{description || "Ten użytkownik nie dodał jeszcze opisu."}</p>
+                    </div>
+                    {/* Przyciski akcji w nagłówku */}
+                    <div className="profile-actions">
+                        {isOwner ? (
+                            <button className="button" onClick={() => setIsActionModalOpen(true)}>Edytuj profil</button>
+                        ) : (
+                            currentUser && <button className="button is-primary" onClick={() => setIsActionModalOpen(true)}>Zostaw recenzję</button>
+                        )}
+                    </div>
+                </header>
+
+                <div className="profile-tabs">
+                    <button className={`tab-button ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>Oferty</button>
+                    <button className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>Recenzje</button>
+                    <button className={`tab-button ${activeTab === 'rentals' ? 'active' : ''}`} onClick={() => setActiveTab('rentals')}>Wypożyczenia</button>
                 </div>
-            </header>
 
-            <div className="profile-tabs">
-                <button className={`tab-button ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>Oferty ({offers.length})</button>
-                <button className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>Recenzje</button>
-                <button className={`tab-button ${activeTab === 'rentals' ? 'active' : ''}`} onClick={() => setActiveTab('rentals')}>Wypożyczenia</button>
+                <main className="profile-content">
+                    {activeTab === 'offers' && <UserOffersTab offers={offers} isOwner={isOwner} />}
+                    {activeTab === 'reviews' && (
+                        <ProfileReviewsTab
+                            username={username}
+                            isOwner={isOwner}
+                            onReviewDeleted={fetchProfileData}
+                        />
+                    )}
+                    {activeTab === 'rentals' && <p>Zakładka z wypożyczeniami w budowie.</p>}
+                </main>
             </div>
-
-            <main className="profile-content">
-                {activeTab === 'offers' && <UserOffersTab offers={offers} isOwner={isOwner} />}
-                {activeTab === 'reviews' && <p>Zakładka z recenzjami w budowie.</p>}
-                {activeTab === 'rentals' && <p>Zakładka z wypożyczeniami w budowie.</p>}
-            </main>
-        </div>
+        </>
     );
 };
 

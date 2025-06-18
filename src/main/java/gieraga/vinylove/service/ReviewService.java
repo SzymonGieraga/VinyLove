@@ -6,8 +6,10 @@ import gieraga.vinylove.model.*;
 import gieraga.vinylove.repo.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import gieraga.vinylove.dto.SimpleReviewDto;
 
 import gieraga.vinylove.dto.CreateReviewDto;
 import gieraga.vinylove.dto.CreateUserReviewDto;
@@ -34,7 +36,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public RecordReview createReview(Long offerId, CreateReviewDto dto) {
+    public ReviewDto createReview(Long offerId, CreateReviewDto dto) {
         User author = authService.getAuthenticatedUser();
         RecordOffer offer = offerRepo.findById(offerId)
                 .orElseThrow(() -> new EntityNotFoundException("Offer not found"));
@@ -46,7 +48,9 @@ public class ReviewService {
         review.setComment(dto.getComment());
         review.setCreatedAt(LocalDateTime.now());
 
-        return reviewRepo.save(review);
+        RecordReview savedReview = reviewRepo.save(review);
+
+        return mapToDto(savedReview);
     }
 
     private ReviewDto mapToDto(RecordReview review) {
@@ -55,7 +59,6 @@ public class ReviewService {
         dto.setAuthorProfileImageUrl(review.getAuthor().getProfileImageUrl());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
-        dto.setCreatedAt(review.getCreatedAt());
 
         boolean hasRented = rentalRepo.existsByRenterAndRecordOffer(review.getAuthor(), review.getRecordOffer());
         dto.setHasRented(hasRented);
@@ -64,7 +67,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public UserReview createUserReview(String reviewedUsername, CreateUserReviewDto dto) {
+    public SimpleReviewDto createUserReview(String reviewedUsername, CreateUserReviewDto dto) {
         User reviewer = authService.getAuthenticatedUser();
         User reviewedUser = userRepo.findByUsername(reviewedUsername)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -79,14 +82,49 @@ public class ReviewService {
         review.setRating(dto.getRating());
         review.setComment(dto.getComment());
 
-        return userReviewRepo.save(review);
+        UserReview savedReview = userReviewRepo.save(review);
+
+        // Zwracamy DTO, co jest bezpieczne i rozwiązuje problem z serializacją
+        return mapToSimpleDto(savedReview);
     }
 
-    public void deleteUserReview(Long reviewId) {
-        userReviewRepo.deleteById(reviewId);
+    // Metoda pomocnicza do mapowania UserReview na SimpleReviewDto
+    private SimpleReviewDto mapToSimpleDto(UserReview review) {
+        SimpleReviewDto dto = new SimpleReviewDto();
+        dto.setId(review.getId());
+        dto.setRating(review.getRating());
+        dto.setComment(review.getComment());
+        dto.setCreatedAt(review.getCreatedAt());
+        dto.setReviewType("USER");
+        dto.setReviewerUsername(review.getReviewer().getUsername());
+        User reviewedUser = review.getReviewedUser();
+        dto.setSubjectId(reviewedUser.getId());
+        dto.setSubjectName(reviewedUser.getUsername());
+        dto.setSubjectImageUrl(reviewedUser.getProfileImageUrl());
+        return dto;
     }
 
+    @Transactional
     public void deleteRecordReview(Long reviewId) {
-        reviewRepo.deleteById(reviewId);
+        User currentUser = authService.getAuthenticatedUser();
+        RecordReview review = reviewRepo.findById(reviewId)
+                .orElseThrow(() -> new EntityNotFoundException("Recenzja nie istnieje."));
+
+        if (!review.getAuthor().equals(currentUser) && currentUser.getRole() != UserRole.ROLE_ADMIN) {
+            throw new AccessDeniedException("Nie masz uprawnień do usunięcia tej recenzji.");
+        }
+        reviewRepo.delete(review);
+    }
+
+    @Transactional
+    public void deleteUserReview(Long reviewId) {
+        User currentUser = authService.getAuthenticatedUser();
+        UserReview review = userReviewRepo.findById(reviewId)
+                .orElseThrow(() -> new EntityNotFoundException("Recenzja nie istnieje."));
+
+        if (!review.getReviewer().equals(currentUser) && currentUser.getRole() != UserRole.ROLE_ADMIN) {
+            throw new AccessDeniedException("Nie masz uprawnień do usunięcia tej recenzji.");
+        }
+        userReviewRepo.delete(review);
     }
 }

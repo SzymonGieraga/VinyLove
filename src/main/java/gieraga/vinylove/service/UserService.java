@@ -13,6 +13,9 @@ import gieraga.vinylove.repo.UserRepo;
 import gieraga.vinylove.repo.UserReviewRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,28 +35,84 @@ public class UserService {
     private final UserReviewRepo userReviewRepo;
     private final RecordReviewRepo recordReviewRepo;
 
-    private SimpleReviewDto mapToSimpleDto(RecordReview review, User author) {
+    // Metody mapujące pozostają bez zmian
+    private SimpleReviewDto mapToSimpleDto(RecordReview review) {
         SimpleReviewDto dto = new SimpleReviewDto();
+        User author = review.getAuthor();
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setCreatedAt(review.getCreatedAt());
         dto.setReviewType("RECORD");
+        dto.setReviewerUsername(review.getAuthor().getUsername());
+        dto.setSubjectId(review.getRecordOffer().getId());
         dto.setSubjectName(review.getRecordOffer().getTitle());
         dto.setReviewerUsername(author.getUsername());
+        dto.setReviewerProfileImageUrl(author.getProfileImageUrl());
+
+        dto.setSubjectImageUrl(review.getRecordOffer().getCoverImageUrl());
         return dto;
     }
 
-    private SimpleReviewDto mapToSimpleDto(UserReview review, User author) {
+    private SimpleReviewDto mapToSimpleDto(UserReview review) {
         SimpleReviewDto dto = new SimpleReviewDto();
+        User reviewer = review.getReviewer();
         dto.setId(review.getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setCreatedAt(review.getCreatedAt());
         dto.setReviewType("USER");
-        dto.setSubjectName(review.getReviewedUser().getUsername());
-        dto.setReviewerUsername(author.getUsername());
+        User reviewedUser = review.getReviewedUser();
+        dto.setSubjectId(reviewedUser.getId());
+        dto.setSubjectName(reviewedUser.getUsername());
+        dto.setSubjectImageUrl(reviewedUser.getProfileImageUrl());
+        dto.setReviewerUsername(reviewer.getUsername());
+        dto.setReviewerProfileImageUrl(reviewer.getProfileImageUrl());
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SimpleReviewDto> getReviewsForProfile(String username, String viewMode, String reviewType, Pageable pageable) {
+
+        if ("about".equals(viewMode)) {
+            switch (reviewType) {
+                case "RECORD":
+                    return recordReviewRepo.findByRecordOfferOwnerUsername(username, pageable).map(this::mapToSimpleDto);
+                case "USER":
+                    return userReviewRepo.findByReviewedUserUsername(username, pageable).map(this::mapToSimpleDto);
+                default: // "ALL"
+                    List<SimpleReviewDto> allAboutReviews = new ArrayList<>();
+                    recordReviewRepo.findByRecordOfferOwnerUsername(username).forEach(r -> allAboutReviews.add(mapToSimpleDto(r)));
+                    userReviewRepo.findByReviewedUserUsername(username).forEach(r -> allAboutReviews.add(mapToSimpleDto(r)));
+                    allAboutReviews.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+                    return createPageFromList(allAboutReviews, pageable);
+            }
+        }
+        else {
+            switch (reviewType) {
+                case "RECORD":
+                    return recordReviewRepo.findByAuthorUsername(username, pageable).map(this::mapToSimpleDto);
+                case "USER":
+                    return userReviewRepo.findByReviewerUsername(username, pageable).map(this::mapToSimpleDto);
+                default:
+                    List<SimpleReviewDto> allWrittenReviews = new ArrayList<>();
+                    recordReviewRepo.findByAuthorUsername(username).forEach(r -> allWrittenReviews.add(mapToSimpleDto(r)));
+                    userReviewRepo.findByReviewerUsername(username).forEach(r -> allWrittenReviews.add(mapToSimpleDto(r)));
+                    allWrittenReviews.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+                    return createPageFromList(allWrittenReviews, pageable);
+            }
+        }
+    }
+
+    private <T> Page<T> createPageFromList(List<T> list, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), list.size());
+
+        if (start > list.size()) {
+            return new PageImpl<>(List.of(), pageable, list.size());
+        }
+
+        return new PageImpl<>(list.subList(start, end), pageable, list.size());
     }
 
     @Transactional(readOnly = true)
@@ -64,22 +123,21 @@ public class UserService {
         List<RecordOffer> offers = offerRepo.findByOwnerUsernameOrderByIdDesc(username);
 
         List<SimpleReviewDto> writtenReviews = new ArrayList<>();
-        recordReviewRepo.findByAuthorUsername(username).forEach(r -> writtenReviews.add(mapToSimpleDto(r, r.getAuthor())));
-        userReviewRepo.findByReviewerUsername(username).forEach(r -> writtenReviews.add(mapToSimpleDto(r, r.getReviewer())));
+        recordReviewRepo.findByAuthorUsername(username).forEach(r -> writtenReviews.add(mapToSimpleDto(r)));
+        userReviewRepo.findByReviewerUsername(username).forEach(r -> writtenReviews.add(mapToSimpleDto(r)));
 
         List<SimpleReviewDto> reviewsAboutUser = new ArrayList<>();
-        userReviewRepo.findByReviewedUserUsername(username).forEach(r -> reviewsAboutUser.add(mapToSimpleDto(r, r.getReviewer())));
+        recordReviewRepo.findByRecordOfferOwnerUsername(username).forEach(r -> reviewsAboutUser.add(mapToSimpleDto(r)));
+        userReviewRepo.findByReviewedUserUsername(username).forEach(r -> reviewsAboutUser.add(mapToSimpleDto(r)));
 
-        writtenReviews.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt).reversed());
-        reviewsAboutUser.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt).reversed());
+        writtenReviews.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+        reviewsAboutUser.sort(Comparator.comparing(SimpleReviewDto::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
         UserProfileDto profileDto = new UserProfileDto();
         profileDto.setUsername(user.getUsername());
         profileDto.setDescription(user.getDescription());
         profileDto.setProfileImageUrl(user.getProfileImageUrl());
         profileDto.setOffers(offers.stream().map(offerConverter::toUserOfferDto).collect(Collectors.toList()));
-
-        // === POPRAWKA: BRAKUJĄCE LINIE KODU ZOSTAŁY DODANE ===
         profileDto.setWrittenReviews(writtenReviews);
         profileDto.setReviewsAboutUser(reviewsAboutUser);
 
