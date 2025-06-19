@@ -40,10 +40,11 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // --- 1. ENDPOINTY PUBLICZNE (dostępne dla wszystkich) ---
+                        // --- 1. ENDPOINTY PUBLICZNE ---
+                        // Ta jedna reguła obsługuje /login, /register itp.
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll() // Obejmuje /api/offers i /api/offers/{id}
+                        .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/profile").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/{offerId}/reviews").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/reviews").permitAll()
@@ -52,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/offers").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/offers/{offerId}/reviews").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users/{username}/reviews").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
                         .requestMatchers("/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
 

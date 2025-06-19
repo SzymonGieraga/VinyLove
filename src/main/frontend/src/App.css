@@ -1073,3 +1073,51 @@ body {
   top: 0;
   right: 0;
 }
+
+.edit-profile-form {
+  margin-top: 1.5rem;
+}
+.image-preview-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.profile-avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f0f0f0;
+}
+.rental-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #fff;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.rental-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.rental-info {
+  flex-grow: 1;
+}
+.rental-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+.rental-actions button {
+  background-color: #3273dc;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}

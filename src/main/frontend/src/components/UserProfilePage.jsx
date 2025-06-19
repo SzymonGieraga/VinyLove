@@ -5,7 +5,9 @@ import authService from '../services/authService';
 import UserOffersTab from './UserOffersTab';
 import ProfileReviewsTab from './ProfileReviewsTab';
 import UserActionModal from './UserActionModal';
-import UserReviewForm from "./UserReviewForm"; // Nowy import
+import UserReviewForm from "./UserReviewForm";
+import EditProfileForm from './EditProfileForm';
+import ProfileRentalsTab from "./ProfileRentalTab";
 
 const UserProfilePage = () => {
     const { username } = useParams();
@@ -49,14 +51,19 @@ const UserProfilePage = () => {
                 title={isOwner ? "Edytuj profil" : `Oceń użytkownika ${username}`}
             >
                 {isOwner ? (
-                    <p>Formularz edycji profilu w budowie...</p>
+                    <EditProfileForm
+                        currentUserProfile={profileData}
+                        onSuccess={() => {
+                            setIsActionModalOpen(false);
+                            fetchProfileData();
+                        }}
+                    />
                 ) : (
                     <UserReviewForm
                         reviewedUsername={username}
                         onSuccess={() => {
                             setIsActionModalOpen(false);
                             alert("Dziękujemy za Twoją opinię!");
-                            fetchProfileData();
                         }}
                     />
                 )}
@@ -94,7 +101,7 @@ const UserProfilePage = () => {
                             onReviewDeleted={fetchProfileData}
                         />
                     )}
-                    {activeTab === 'rentals' && <p>Zakładka z wypożyczeniami w budowie.</p>}
+                    {activeTab === 'rentals' && <ProfileRentalsTab username={username} isOwner={isOwner} />}
                 </main>
             </div>
         </>

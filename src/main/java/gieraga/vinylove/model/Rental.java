@@ -32,13 +32,12 @@ public class Rental {
     @Column(nullable = false)
     private LocalDate returnDate;
 
-    @Column(nullable = false)
-    private String deliveryAddress;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "delivery_address_id", referencedColumnName = "id")
+    private Address deliveryAddress;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RentalStatus status;
 
-    @Column(nullable = false)
-    private String deliveryMethod;
 }

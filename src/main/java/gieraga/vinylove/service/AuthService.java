@@ -1,8 +1,10 @@
 package gieraga.vinylove.service;
 
+import gieraga.vinylove.converter.UserConverter; // Upewnij się, że ten import istnieje
 import gieraga.vinylove.dto.LoginResponseDto;
 import gieraga.vinylove.dto.LoginUserDto;
 import gieraga.vinylove.dto.RegisterUserDto;
+import gieraga.vinylove.dto.UserDto; // Upewnij się, że ten import istnieje
 import gieraga.vinylove.model.User;
 import gieraga.vinylove.model.UserRole;
 import gieraga.vinylove.repo.UserRepo;
@@ -29,14 +31,21 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final UserConverter userConverter; // Wstrzykujemy konwerter
 
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
         String username = authentication.getName();
         return userRepo.findByUsername(username).orElse(null);
     }
 
-    public User registerUser(RegisterUserDto registerUserDto) {
+    /**
+     * Metoda została zmieniona, aby zwracać bezpieczne DTO.
+     */
+    public UserDto registerUser(RegisterUserDto registerUserDto) {
         if (userRepo.findByUsername(registerUserDto.getUsername()).isPresent() || userRepo.findByEmail(registerUserDto.getEmail()).isPresent()) {
             throw new IllegalStateException("Username or email already taken");
         }
@@ -48,7 +57,11 @@ public class AuthService {
         user.setRole(UserRole.ROLE_USER);
         user.setBalance(new BigDecimal("100.00"));
         user.setActive(true);
-        return userRepo.save(user);
+
+        User savedUser = userRepo.save(user);
+
+        // Zwracamy DTO zamiast surowej encji
+        return userConverter.toDto(savedUser);
     }
 
     public LoginResponseDto loginUser(LoginUserDto loginUserDto) {

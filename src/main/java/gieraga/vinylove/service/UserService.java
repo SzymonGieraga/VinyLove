@@ -1,7 +1,9 @@
 package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
+import gieraga.vinylove.converter.UserConverter;
 import gieraga.vinylove.dto.SimpleReviewDto;
+import gieraga.vinylove.dto.UserDto;
 import gieraga.vinylove.dto.UserProfileDto;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.model.RecordReview;
@@ -18,6 +20,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import gieraga.vinylove.service.AuthService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,6 +38,9 @@ public class UserService {
     private final OfferConverter offerConverter;
     private final UserReviewRepo userReviewRepo;
     private final RecordReviewRepo recordReviewRepo;
+    private final AuthService authService;
+    private final FileStorageService fileStorageService;
+    private final UserConverter userConverter;
 
     // Metody mapujące pozostają bez zmian
     private SimpleReviewDto mapToSimpleDto(RecordReview review) {
@@ -142,5 +149,26 @@ public class UserService {
         profileDto.setReviewsAboutUser(reviewsAboutUser);
 
         return profileDto;
+    }
+    @Transactional
+    public UserDto updateUserProfile(String description, MultipartFile profileImage) {
+        User user = authService.getAuthenticatedUser();
+        if (user == null) {
+            throw new EntityNotFoundException("Użytkownik nie jest zalogowany.");
+        }
+
+        if (description != null) {
+            user.setDescription(description);
+        }
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String imageUrl = fileStorageService.store(profileImage);
+            user.setProfileImageUrl(imageUrl);
+        }
+
+        User updatedUser = userRepo.save(user);
+
+        // Zwracamy DTO zamiast encji
+        return userConverter.toDto(updatedUser);
     }
 }

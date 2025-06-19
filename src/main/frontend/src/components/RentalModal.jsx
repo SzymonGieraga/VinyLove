@@ -1,34 +1,37 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import rentalService from '../services/rentalService';
 import ParcelLockerMap from './ParcelLockerMap';
 import authService from "../services/authService";
 
-const RentalModal = ({ offer, user, onClose }) => {
+const RentalModal = ({ offer, onClose }) => {
+    // --- Stany formularza ---
     const [rentalDays, setRentalDays] = useState(7);
-    const [deliveryMethod, setDeliveryMethod] = useState('home');
-    const [deliveryAddress, setDeliveryAddress] = useState('');
+    const [address, setAddress] = useState({
+        type: 'HOME',
+        street: '',
+        city: '',
+        postalCode: '',
+        country: 'Polska'
+    });
+
+    // --- Stany logiki ---
+    const [currentUser, setCurrentUser] = useState(null);
+    const [step, setStep] = useState(1);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
-    const [step, setStep] = useState(1);
-    const [currentUser, setCurrentUser] = useState(null);
-
 
     const RENTAL_DEPOSIT = 50.00;
 
     useEffect(() => {
         const user = authService.getCurrentUser();
+        // Symulacja salda (w przyszłości powinno przychodzić z API)
         user.balance = user.balance || 100.00;
         setCurrentUser(user);
     }, []);
 
-    const handleFormSubmit = (e) => {
-        e.preventDefault();
-        if (!deliveryAddress) {
-            setMessage('Proszę podać adres dostawy lub wybrać paczkomat.');
-            return;
-        }
-        setMessage('');
-        setStep(2);
+    const handleAddressTypeChange = (type) => {
+        const newAddress = { type, street: '', city: '', postalCode: '', country: 'Polska' };
+        setAddress(newAddress);
     };
 
     const handleAddFunds = () => {
@@ -38,11 +41,25 @@ const RentalModal = ({ offer, user, onClose }) => {
         localStorage.setItem('user', JSON.stringify({ ...authService.getCurrentUser(), balance: updatedUser.balance }));
     };
 
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        if (!address.street) {
+            setMessage('Proszę podać adres dostawy lub wybrać paczkomat.');
+            return;
+        }
+        setMessage('');
+        setStep(2);
+    };
+
     const handleConfirmRental = async () => {
         setLoading(true);
         setMessage('');
 
-        const rentalData = { offerId: offer.id, rentalDays, deliveryMethod, deliveryAddress };
+        const rentalData = {
+            offerId: offer.id,
+            rentalDays,
+            deliveryAddress: address // Wysyłamy cały obiekt adresu
+        };
 
         try {
             await rentalService.createRental(rentalData);
@@ -56,34 +73,7 @@ const RentalModal = ({ offer, user, onClose }) => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!deliveryAddress) {
-            setMessage('Proszę podać adres dostawy lub wybrać paczkomat.');
-            return;
-        }
-        setLoading(true);
-        setMessage('');
-
-        const rentalData = {
-            offerId: offer.id,
-            rentalDays,
-            deliveryMethod,
-            deliveryAddress,
-        };
-
-        try {
-            await rentalService.createRental(rentalData);
-            setMessage('Wypożyczenie zostało pomyślnie złożone!');
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } catch (error) {
-            const resMessage = (error.response?.data?.message) || 'Wystąpił błąd podczas wypożyczania.';
-            setMessage(resMessage);
-            setLoading(false);
-        }
-    };
+    // ... (funkcja handleAddFunds bez zmian)
 
     return (
         <div className="modal-backdrop">
@@ -94,66 +84,66 @@ const RentalModal = ({ offer, user, onClose }) => {
                 {step === 1 && (
                     <form onSubmit={handleFormSubmit}>
                         <div className="form-group">
-                        <label>Czas wypożyczenia: {rentalDays} dni</label>
-                        <input type="range" min="1" max="30" value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} className="form-range" />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Metoda dostawy:</label>
-                        <div className="delivery-options">
-                            <button type="button" className={deliveryMethod === 'home' ? 'active' : ''} onClick={() => setDeliveryMethod('home')}>Dostawa do domu</button>
-                            <button type="button" className={deliveryMethod === 'locker' ? 'active' : ''} onClick={() => setDeliveryMethod('locker')}>Paczkomat</button>
+                            <label>Czas wypożyczenia: {rentalDays} dni</label>
+                            <input type="range" min="1" max="30" value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} className="form-range" />
                         </div>
-                    </div>
 
-                    {deliveryMethod === 'home' && (
                         <div className="form-group">
-                            <label htmlFor="address">Adres dostawy:</label>
-                            <input type="text" id="address" className="form-control" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} placeholder="ul. Przykładowa 1, 00-000 Miasto" />
+                            <label>Metoda dostawy:</label>
+                            <div className="delivery-options">
+                                <button type="button" className={address.type === 'HOME' ? 'active' : ''} onClick={() => handleAddressTypeChange('HOME')}>Dostawa do domu</button>
+                                <button type="button" className={address.type === 'PARCEL_LOCKER' ? 'active' : ''} onClick={() => handleAddressTypeChange('PARCEL_LOCKER')}>Paczkomat</button>
+                            </div>
                         </div>
-                    )}
 
-                    {deliveryMethod === 'locker' && (
-                        <div className="form-group">
-                            <label>Wybierz paczkomat z mapy:</label>
-                            <ParcelLockerMap onSelectLocker={(lockerAddress) => setDeliveryAddress(lockerAddress)} />
-                            {deliveryAddress && <p style={{marginTop: '0.5rem'}}>Wybrano: <strong>{deliveryAddress}</strong></p>}
-                        </div>
-                    )}
+                        {address.type === 'HOME' && (
+                            <div className="address-form-fields">
+                                <input type="text" name="street" placeholder="Ulica i numer" className="form-control" value={address.street || ''} onChange={(e) => setAddress(prev => ({ ...prev, street: e.target.value }))} required />
+                                <input type="text" name="city" placeholder="Miasto" className="form-control" value={address.city || ''} onChange={(e) => setAddress(prev => ({ ...prev, city: e.target.value }))} required />
+                                <input type="text" name="postalCode" placeholder="Kod pocztowy" className="form-control" value={address.postalCode || ''} onChange={(e) => setAddress(prev => ({ ...prev, postalCode: e.target.value }))} required />
+                            </div>
+                        )}
 
+                        {address.type === 'PARCEL_LOCKER' && (
                             <div className="form-group">
-                                <button type="submit" className="button is-primary">Dalej</button>
+                                <label>Wybierz paczkomat z mapy:</label>
+                                <ParcelLockerMap onSelectLocker={(lockerAddress) => setAddress({ type: 'PARCEL_LOCKER', street: lockerAddress, city: 'N/A', postalCode: 'N/A', country: 'Polska' })} />
+                                {address.street && <p style={{marginTop: '0.5rem'}}>Wybrano: <strong>{address.street}</strong></p>}
                             </div>
-                        </form>
-                    )}
-
-                    {step === 2 && currentUser && (
-                        <div className="deposit-step">
-                            <h3>Potwierdzenie Kaucji</h3>
-                            <div className="balance-info">
-                                <p>Twoje saldo: <strong>{currentUser.balance.toFixed(2)} PLN</strong></p>
-                                <p>Wymagana kaucja zwrotna: <strong>{RENTAL_DEPOSIT.toFixed(2)} PLN</strong></p>
-                            </div>
-
-                            {currentUser.balance >= RENTAL_DEPOSIT ? (
-                                <>
-                                    <p className="alert-info">Z Twojego konta zostanie pobrana kaucja, która wróci po zwrocie płyty.</p>
-                                    <button onClick={handleConfirmRental} className="button is-primary" disabled={loading}>
-                                        {loading ? 'Przetwarzanie...' : 'Potwierdź i zablokuj kaucję'}
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <p className="alert alert-danger">Masz za mało środków na koncie, aby wypożyczyć tę płytę.</p>
-                                    <button onClick={handleAddFunds} className="button">
-                                        Doładuj konto (Symulacja)
-                                    </button>
-                                </>
-                            )}
+                        )}
+                        <div className="form-group">
+                            <button type="submit" className="button is-primary" style={{marginTop: '0.5rem'}}>Dalej</button>
                         </div>
-                    )}
+                    </form>
+                )}
 
-                    {message && <div className="alert alert-info" style={{marginTop: '1rem'}}>{message}</div>}
+                {step === 2 && currentUser && (
+                    <div className="deposit-step">
+                        <h3>Potwierdzenie Kaucji</h3>
+                        <div className="balance-info">
+                            <p>Twoje saldo: <strong>{currentUser.balance.toFixed(2)} PLN</strong></p>
+                            <p>Wymagana kaucja zwrotna: <strong>{RENTAL_DEPOSIT.toFixed(2)} PLN</strong></p>
+                        </div>
+
+                        {currentUser.balance >= RENTAL_DEPOSIT ? (
+                            <>
+                                <p className="alert-info">Z Twojego konta zostanie pobrana kaucja, która wróci po zwrocie płyty.</p>
+                                <button onClick={handleConfirmRental} className="button is-primary" disabled={loading}>
+                                    {loading ? 'Przetwarzanie...' : 'Potwierdź i zablokuj kaucję'}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <p className="alert alert-danger">Masz za mało środków na koncie, aby wypożyczyć tę płytę.</p>
+                                <button onClick={handleAddFunds} className="button">
+                                    Doładuj konto (Symulacja)
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {message && <div className="alert alert-info" style={{marginTop: '1rem'}}>{message}</div>}
             </div>
         </div>
     );

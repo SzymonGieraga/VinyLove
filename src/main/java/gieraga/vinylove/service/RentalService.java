@@ -1,5 +1,7 @@
 package gieraga.vinylove.service;
 
+import gieraga.vinylove.dto.AddressDto;
+import gieraga.vinylove.dto.RentalDto;
 import gieraga.vinylove.dto.RentalRequestDto;
 import gieraga.vinylove.model.*;
 import gieraga.vinylove.repo.RecordOfferRepo;
@@ -7,6 +9,9 @@ import gieraga.vinylove.repo.UserRepo;
 import gieraga.vinylove.repo.RentalRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +30,7 @@ public class RentalService {
     private static final BigDecimal RENTAL_DEPOSIT = new BigDecimal("50.00");
 
     @Transactional
-    public Rental createRental(RentalRequestDto rentalRequestDto) {
+    public RentalDto createRental(RentalRequestDto rentalRequestDto) {
         User renter = authService.getAuthenticatedUser();
         if (renter == null) {
             throw new IllegalStateException("Aby wypożyczyć, musisz być zalogowany.");
@@ -52,16 +57,102 @@ public class RentalService {
         offer.setStatus(OfferStatus.RENTED);
         recordOfferRepo.save(offer);
 
+        AddressDto addressDto = rentalRequestDto.getDeliveryAddress();
+        Address deliveryAddress = new Address();
+        deliveryAddress.setUser(renter);
+        deliveryAddress.setType(addressDto.getType());
+        deliveryAddress.setStreet(addressDto.getStreet());
+        deliveryAddress.setCity(addressDto.getCity());
+        deliveryAddress.setPostalCode(addressDto.getPostalCode());
+        deliveryAddress.setCountry(addressDto.getCountry());
+
         Rental rental = new Rental();
         rental.setRenter(renter);
         rental.setRecordOffer(offer);
         rental.setRentalDate(LocalDate.now());
         rental.setReturnDate(LocalDate.now().plusDays(rentalRequestDto.getRentalDays()));
-        rental.setDeliveryMethod(rentalRequestDto.getDeliveryMethod());
-        rental.setDeliveryAddress(rentalRequestDto.getDeliveryAddress());
-
         rental.setStatus(RentalStatus.REQUESTED);
+        rental.setDeliveryAddress(deliveryAddress);
+
+        Rental savedRental = rentalRepo.save(rental);
+
+        // Zwracamy DTO, co jest bezpieczne i rozwiązuje problem
+        return mapToDto(savedRental);
+    }
+
+    // Pozostałe metody bez zmian...
+    @Transactional(readOnly = true)
+    public Page<RentalDto> getRentalsForProfile(String username, String viewMode, Pageable pageable) {
+        Page<Rental> rentals;
+        if ("rentedBy".equals(viewMode)) {
+            rentals = rentalRepo.findByRenterUsername(username, pageable);
+        } else { // "ownedBy"
+            rentals = rentalRepo.findByRecordOfferOwnerUsername(username, pageable);
+        }
+        return rentals.map(this::mapToDto);
+    }
+
+    @Transactional
+    public Rental updateRentalStatus(Long rentalId, RentalStatus newStatus) {
+        User currentUser = authService.getAuthenticatedUser();
+        Rental rental = rentalRepo.findById(rentalId).orElseThrow(() -> new EntityNotFoundException("Wypożyczenie nie znalezione."));
+
+        validateStatusChange(rental, newStatus, currentUser);
+
+        rental.setStatus(newStatus);
+
+        if (newStatus == RentalStatus.RETURNED) {
+            User renter = rental.getRenter();
+            renter.setBalance(renter.getBalance().add(RENTAL_DEPOSIT));
+            userRepo.save(renter);
+
+            RecordOffer offer = rental.getRecordOffer();
+            offer.setStatus(OfferStatus.AVAILABLE);
+            recordOfferRepo.save(offer);
+        }
 
         return rentalRepo.save(rental);
+    }
+
+    private void validateStatusChange(Rental rental, RentalStatus newStatus, User user) {
+        RentalStatus currentStatus = rental.getStatus();
+        boolean isOwner = user.equals(rental.getRecordOffer().getOwner());
+        boolean isRenter = user.equals(rental.getRenter());
+
+        switch (currentStatus) {
+            case REQUESTED:
+                if (newStatus != RentalStatus.SENT_TO_RENTER || !isOwner) throw new AccessDeniedException("Invalid action");
+                break;
+            case SENT_TO_RENTER:
+                if (newStatus != RentalStatus.DELIVERED || !isRenter) throw new AccessDeniedException("Invalid action");
+                break;
+            case DELIVERED:
+                if (newStatus != RentalStatus.SENT_TO_OWNER || !isRenter) throw new AccessDeniedException("Invalid action");
+                break;
+            case SENT_TO_OWNER:
+                if (newStatus != RentalStatus.RETURNED || !isOwner) throw new AccessDeniedException("Invalid action");
+                break;
+            default:
+                throw new AccessDeniedException("Invalid action");
+        }
+    }
+
+    private RentalDto mapToDto(Rental rental) {
+        RentalDto dto = new RentalDto();
+        dto.setRentalId(rental.getId());
+        dto.setOfferId(rental.getRecordOffer().getId());
+        dto.setOfferTitle(rental.getRecordOffer().getTitle());
+        dto.setOfferImageUrl(rental.getRecordOffer().getCoverImageUrl());
+        dto.setStatus(rental.getStatus());
+        dto.setRentalDate(rental.getRentalDate());
+        dto.setReturnDate(rental.getReturnDate());
+
+        User currentUser = authService.getAuthenticatedUser();
+        if (currentUser != null && currentUser.equals(rental.getRenter())) {
+            dto.setOtherPartyUsername(rental.getRecordOffer().getOwner().getUsername());
+        } else {
+            dto.setOtherPartyUsername(rental.getRenter().getUsername());
+        }
+        return dto;
     }
 }

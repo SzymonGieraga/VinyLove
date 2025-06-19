@@ -10,5 +10,18 @@ const getProfileReviews = (username, viewMode, reviewType, page = 0) => {
     });
 };
 
-const userService = { getUserProfile, getProfileReviews };
+const updateUserProfile = (formData) => {
+    return api.put('/users/profile', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
+const userService = {
+    getUserProfile,
+    getProfileReviews,
+    updateUserProfile,
+};
+
 export default userService;
