@@ -43,6 +43,7 @@ build/
 /src/main/frontend/build/
 /src/main/frontend/.pnp
 /src/main/frontend/.pnp.js
+/uploads
 
 # Pliki logów
 *.log
