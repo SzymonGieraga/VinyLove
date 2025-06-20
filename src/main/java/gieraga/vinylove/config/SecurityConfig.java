@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
                         .requestMatchers("/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
 
                         // --- 3. ENDPOINTY ADMINA ---
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")

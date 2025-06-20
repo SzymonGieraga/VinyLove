@@ -1,11 +1,9 @@
 package gieraga.vinylove.controller;
 
-import gieraga.vinylove.dto.LoginResponseDto;
-import gieraga.vinylove.dto.LoginUserDto;
-import gieraga.vinylove.dto.RegisterUserDto;
-import gieraga.vinylove.dto.UserDto;
+import gieraga.vinylove.dto.*;
 import gieraga.vinylove.model.User;
 import gieraga.vinylove.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +29,11 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginUserDto loginUserDto) {
         LoginResponseDto loginResponse = authService.loginUser(loginUserDto);
         return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDto changePasswordDto) {
+        authService.changePassword(changePasswordDto);
+        return ResponseEntity.ok().build();
     }
 }

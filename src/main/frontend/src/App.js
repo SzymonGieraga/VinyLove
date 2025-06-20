@@ -5,14 +5,21 @@ import Register from './components/Register';
 import Home from './components/Home';
 import authService from './services/authService';
 import './App.css';
-import UserProfile from './components/UserProfile';
 import ProfileDropdown from './components/ProfileDropdown';
 import AddOfferPage from "./components/AddOfferPage";
 import OfferDetailsPage from "./components/OfferDetailsPage";
 import UserProfilePage from './components/UserProfilePage';
+import ResetPasswordPage from "./components/ResetPasswordPage";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+
+  useEffect(() => {
+    document.body.className = theme;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const user = authService.getCurrentUser();
@@ -28,7 +35,11 @@ function App() {
 
   const handleLogin = () => {
     setCurrentUser(authService.getCurrentUser());
-  }
+  };
+
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
 
   return (
       <Router>
@@ -39,14 +50,10 @@ function App() {
             </div>
             <div className="navbar-menu">
               <div className="navbar-start">
-                {/* Usunięto link /offers, ponieważ logo prowadzi do strony głównej */}
-                {currentUser && (
-                    <Link to="/my-profile" className="navbar-item">Mój Profil</Link>
-                )}
               </div>
               {currentUser ? (
                   <div className="navbar-end">
-                    <ProfileDropdown user={currentUser} onLogout={handleLogout} />
+                    <ProfileDropdown user={currentUser} onLogout={handleLogout} onToggleTheme={toggleTheme} currentTheme={theme} />
                   </div>
               ) : (
                   <div className="navbar-end">
@@ -64,17 +71,16 @@ function App() {
           <div className="container mt-3">
             <Routes>
               <Route path="/" element={<Home user={currentUser} />} />
-              <Route path="/home" element={<Home user={currentUser} />} />
+              <Route path="/home" element={<Navigate to="/" />} />
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/my-profile" element={currentUser ? <UserProfile /> : <Navigate to="/login" />} />
-
               <Route path="/add-offer" element={currentUser ? <AddOfferPage /> : <Navigate to="/login" />} />
-
               <Route path="/offer/:id" element={<OfferDetailsPage />} />
 
               <Route path="/my-profile" element={currentUser ? <Navigate to={`/profile/${currentUser.username}`} /> : <Navigate to="/login" />} />
               <Route path="/profile/:username" element={<UserProfilePage />} />
+
+              <Route path="/reset-password" element={currentUser ? <ResetPasswordPage /> : <Navigate to="/login" />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

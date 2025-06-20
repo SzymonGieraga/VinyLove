@@ -1,14 +1,12 @@
 package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.UserConverter; // Upewnij się, że ten import istnieje
-import gieraga.vinylove.dto.LoginResponseDto;
-import gieraga.vinylove.dto.LoginUserDto;
-import gieraga.vinylove.dto.RegisterUserDto;
-import gieraga.vinylove.dto.UserDto; // Upewnij się, że ten import istnieje
+import gieraga.vinylove.dto.*;
 import gieraga.vinylove.model.User;
 import gieraga.vinylove.model.UserRole;
 import gieraga.vinylove.repo.UserRepo;
 import gieraga.vinylove.token.JwtService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,9 +40,6 @@ public class AuthService {
         return userRepo.findByUsername(username).orElse(null);
     }
 
-    /**
-     * Metoda została zmieniona, aby zwracać bezpieczne DTO.
-     */
     public UserDto registerUser(RegisterUserDto registerUserDto) {
         if (userRepo.findByUsername(registerUserDto.getUsername()).isPresent() || userRepo.findByEmail(registerUserDto.getEmail()).isPresent()) {
             throw new IllegalStateException("Username or email already taken");
@@ -60,7 +55,6 @@ public class AuthService {
 
         User savedUser = userRepo.save(user);
 
-        // Zwracamy DTO zamiast surowej encji
         return userConverter.toDto(savedUser);
     }
 
@@ -80,5 +74,21 @@ public class AuthService {
                 loginUserDto.getUsername(),
                 userDetails.getAuthorities().iterator().next().getAuthority(),
                 "Bearer " + jwt);
+    }
+    @Transactional
+    public void changePassword(ChangePasswordDto dto) {
+        User user = getAuthenticatedUser();
+        if (user == null) {
+            throw new IllegalStateException("Użytkownik nie jest uwierzytelniony.");
+        }
+
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Nieprawidłowe aktualne hasło.");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+
+        // 3. Zapisz zmiany
+        userRepo.save(user);
     }
 }

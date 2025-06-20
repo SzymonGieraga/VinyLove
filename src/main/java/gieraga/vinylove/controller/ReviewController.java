@@ -16,13 +16,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api") // Zmieniono adres bazowy na /api
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // --- Endpointy dla recenzji ofert ---
     @GetMapping("/offers/{offerId}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviews(@PathVariable Long offerId) {
         return ResponseEntity.ok(reviewService.getReviewsForOffer(offerId));
@@ -40,7 +39,6 @@ public class ReviewController {
         return new ResponseEntity<>(newReview, HttpStatus.CREATED);
     }
 
-    // --- Endpointy do usuwania ---
     @DeleteMapping("/reviews/record/{id}")
     public ResponseEntity<Void> deleteRecordReview(@PathVariable Long id) {
         reviewService.deleteRecordReview(id);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-const ProfileDropdown = ({ user, onLogout }) => {
+const ProfileDropdown = ({ user, onLogout, onToggleTheme, currentTheme }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -12,15 +12,8 @@ const ProfileDropdown = ({ user, onLogout }) => {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [dropdownRef]);
-
-    const handleLogoutClick = () => {
-        setIsOpen(false);
-        onLogout();
-    };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div className="profile-dropdown" ref={dropdownRef}>
@@ -30,7 +23,6 @@ const ProfileDropdown = ({ user, onLogout }) => {
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
             </button>
-
             {isOpen && (
                 <div className="dropdown-menu">
                     <div className="dropdown-header">
@@ -43,8 +35,11 @@ const ProfileDropdown = ({ user, onLogout }) => {
                     <Link to="/reset-password" className="dropdown-item" onClick={() => setIsOpen(false)}>
                         Resetuj hasło
                     </Link>
+                    <button onClick={onToggleTheme} className="dropdown-item dropdown-item-button">
+                        Zmień motyw ({currentTheme === 'light' ? 'Ciemny' : 'Jasny'})
+                    </button>
                     <div className="dropdown-divider"></div>
-                    <button onClick={handleLogoutClick} className="dropdown-item dropdown-item-button">
+                    <button onClick={onLogout} className="dropdown-item dropdown-item-button">
                         Wyloguj
                     </button>
                 </div>
