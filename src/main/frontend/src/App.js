@@ -10,6 +10,7 @@ import AddOfferPage from "./components/AddOfferPage";
 import OfferDetailsPage from "./components/OfferDetailsPage";
 import UserProfilePage from './components/UserProfilePage';
 import ResetPasswordPage from "./components/ResetPasswordPage";
+import AdminPage from "./components/AdminPage";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -81,7 +82,10 @@ function App() {
               <Route path="/profile/:username" element={<UserProfilePage />} />
 
               <Route path="/reset-password" element={currentUser ? <ResetPasswordPage /> : <Navigate to="/login" />} />
-
+              <Route
+                  path="/admin"
+                  element={currentUser && currentUser.role === 'ROLE_ADMIN' ? <AdminPage /> : <Navigate to="/" />}
+              />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

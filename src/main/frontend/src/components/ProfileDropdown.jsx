@@ -29,6 +29,11 @@ const ProfileDropdown = ({ user, onLogout, onToggleTheme, currentTheme }) => {
                         Zalogowano jako <br />
                         <strong>{user.username}</strong>
                     </div>
+                    {user.role === 'ROLE_ADMIN' && (
+                        <Link to="/admin" className="dropdown-item" onClick={() => setIsOpen(false)}>
+                            Panel Administratora
+                        </Link>
+                    )}
                     <Link to="/my-profile" className="dropdown-item" onClick={() => setIsOpen(false)}>
                         Przejdź do profilu
                     </Link>
