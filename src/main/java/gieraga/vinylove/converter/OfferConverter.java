@@ -5,7 +5,10 @@ import gieraga.vinylove.dto.OfferDto;
 import gieraga.vinylove.dto.UserOfferDto;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.dto.OfferDetailsDto;
+import gieraga.vinylove.model.RecordReview;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class OfferConverter {
@@ -13,12 +16,26 @@ public class OfferConverter {
         if (entity == null) {
             return null;
         }
-        return new OfferDto(
-                entity.getId(),
-                entity.getTitle(),
-                entity.getArtists(),
-                entity.getCoverImageUrl()
-        );
+        OfferDto dto = new OfferDto();
+        dto.setId(entity.getId());
+        dto.setTitle(entity.getTitle());
+        dto.setArtists(entity.getArtists());
+        dto.setCoverImageUrl(entity.getCoverImageUrl());
+
+        List<RecordReview> reviews = entity.getReviews();
+        if (reviews != null && !reviews.isEmpty()) {
+            double average = reviews.stream()
+                    .mapToInt(RecordReview::getRating)
+                    .average()
+                    .orElse(0.0);
+            dto.setAverageRating(average);
+            dto.setReviewCount(reviews.size());
+        } else {
+            dto.setAverageRating(0.0);
+            dto.setReviewCount(0);
+        }
+
+        return dto;
     }
     public OfferDetailsDto toDetailsDto(RecordOffer entity) {
         if (entity == null) {
@@ -36,6 +53,20 @@ public class OfferConverter {
             dto.setOwnerUsername(entity.getOwner().getUsername());
             dto.setOwnerProfileImageUrl(entity.getOwner().getProfileImageUrl());
         }
+
+        List<RecordReview> reviews = entity.getReviews();
+        if (reviews != null && !reviews.isEmpty()) {
+            double average = reviews.stream()
+                    .mapToInt(RecordReview::getRating)
+                    .average()
+                    .orElse(0.0);
+            dto.setAverageRating(average);
+            dto.setReviewCount(reviews.size());
+        } else {
+            dto.setAverageRating(0.0);
+            dto.setReviewCount(0);
+        }
+
         return dto;
     }
 

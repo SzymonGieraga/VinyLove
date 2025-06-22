@@ -259,6 +259,18 @@ body {
   cursor: pointer;
 }
 
+.offer-card-body {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.offer-card-details {
+  overflow: hidden;
+}
+
+
 .offer-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px var(--shadow-color);
@@ -291,6 +303,28 @@ body {
   color: var(--text-light-color);
   margin: 0;
 }
+.offer-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-color);
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.offer-card-rating .star-icon {
+  color: var(--star-filled-color);
+  font-size: 1.2rem;
+}
+
+.offer-card-rating .review-count {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: var(--text-light-color);
+  margin-left: 0.1rem;
+}
+
 
 .pagination-controls {
   display: flex;
@@ -517,9 +551,31 @@ body {
 
 .reviews-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.reviews-header > .button {
+  margin-left: auto;
+}
+
+.average-rating-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--header-bg-color);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+.average-rating-header .star-icon {
+  color: var(--star-filled-color);
+  font-size: 1.2rem;
+}
+.average-rating-header .review-count {
+  font-size: 0.9rem;
+  color: var(--text-light-color);
 }
 
 .reviews-list {

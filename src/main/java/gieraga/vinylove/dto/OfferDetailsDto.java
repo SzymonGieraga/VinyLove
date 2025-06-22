@@ -12,4 +12,6 @@ public class OfferDetailsDto {
     private String audioSampleUrl;
     private String ownerUsername;
     private String ownerProfileImageUrl;
+    private Double averageRating;
+    private int reviewCount;
 }

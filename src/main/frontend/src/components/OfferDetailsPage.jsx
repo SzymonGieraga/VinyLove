@@ -106,6 +106,13 @@ const OfferDetailsPage = () => {
                 <div className="offer-reviews-section">
                     <div className="reviews-header">
                         <h3>Oceny i Recenzje</h3>
+                        {offer.reviewCount > 0 && (
+                            <div className="average-rating-header">
+                                <span className="star-icon">&#9733;</span>
+                                <strong>{offer.averageRating.toFixed(1)}</strong>
+                                <span className="review-count">({offer.reviewCount} {offer.reviewCount === 1 ? 'ocena' : 'ocen'})</span>
+                            </div>
+                        )}
                         {currentUser && (
                             <button className="button" onClick={() => setIsReviewModalOpen(true)}>
                                 Dodaj recenzję

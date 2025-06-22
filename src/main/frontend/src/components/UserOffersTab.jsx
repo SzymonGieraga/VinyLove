@@ -7,7 +7,6 @@ const UserOffersTab = ({ offers, isOwner }) => {
     }
 
     const handleStatusChange = (offerId, newStatus) => {
-        // Logika zmiany statusu - do zaimplementowania
         alert(`Zmiana statusu oferty ${offerId} na ${newStatus}`);
     };
 
@@ -31,7 +30,6 @@ const UserOffersTab = ({ offers, isOwner }) => {
                         </Link>
                         {isOwner && (
                             <div className="owner-actions">
-                                {/* Przykładowe przyciski do zarządzania */}
                                 {offer.status === 'AVAILABLE' && <button onClick={() => handleStatusChange(offer.id, 'HIDDEN')}>Ukryj</button>}
                                 {offer.status === 'HIDDEN' && <button onClick={() => handleStatusChange(offer.id, 'AVAILABLE')}>Pokaż</button>}
                                 <button onClick={() => handleStatusChange(offer.id, 'ARCHIVED')} className="danger">Archiwizuj</button>

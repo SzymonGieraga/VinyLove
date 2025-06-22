@@ -12,4 +12,6 @@ public class OfferDto {
     private String title;
     private String artists;
     private String coverImageUrl;
+    private Double averageRating;
+    private int reviewCount;
 }
