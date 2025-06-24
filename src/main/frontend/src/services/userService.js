@@ -10,6 +10,11 @@ const getProfileReviews = (username, viewMode, reviewType, page = 0) => {
     });
 };
 
+const getMyAddresses = () => {
+    return api.get('/users/my-addresses');
+};
+
+
 const updateUserProfile = (formData) => {
     return api.put('/users/profile', formData, {
         headers: {
@@ -22,6 +27,7 @@ const userService = {
     getUserProfile,
     getProfileReviews,
     updateUserProfile,
+    getMyAddresses
 };
 
 export default userService;

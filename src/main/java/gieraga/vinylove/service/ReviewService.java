@@ -59,7 +59,7 @@ public class ReviewService {
         dto.setAuthorProfileImageUrl(review.getAuthor().getProfileImageUrl());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
-
+        dto.setCreatedAt(review.getCreatedAt());
         boolean hasRented = rentalRepo.existsByRenterAndRecordOffer(review.getAuthor(), review.getRecordOffer());
         dto.setHasRented(hasRented);
 

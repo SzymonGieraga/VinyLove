@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import rentalService from '../services/rentalService';
-import ParcelLockerMap from './ParcelLockerMap';
 import authService from "../services/authService";
+import AddressSelection from './AddressSelection';
 
 const RentalModal = ({ offer, onClose }) => {
-    // --- Stany formularza ---
     const [rentalDays, setRentalDays] = useState(7);
     const [address, setAddress] = useState({
         type: 'HOME',
@@ -14,7 +13,6 @@ const RentalModal = ({ offer, onClose }) => {
         country: 'Polska'
     });
 
-    // --- Stany logiki ---
     const [currentUser, setCurrentUser] = useState(null);
     const [step, setStep] = useState(1);
     const [message, setMessage] = useState('');
@@ -24,27 +22,14 @@ const RentalModal = ({ offer, onClose }) => {
 
     useEffect(() => {
         const user = authService.getCurrentUser();
-        // Symulacja salda (w przyszłości powinno przychodzić z API)
         user.balance = user.balance || 100.00;
         setCurrentUser(user);
     }, []);
 
-    const handleAddressTypeChange = (type) => {
-        const newAddress = { type, street: '', city: '', postalCode: '', country: 'Polska' };
-        setAddress(newAddress);
-    };
-
-    const handleAddFunds = () => {
-        alert("Symulacja: Przekierowanie do strony płatności...");
-        const updatedUser = { ...currentUser, balance: currentUser.balance + 50 };
-        setCurrentUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify({ ...authService.getCurrentUser(), balance: updatedUser.balance }));
-    };
-
     const handleFormSubmit = (e) => {
         e.preventDefault();
         if (!address.street) {
-            setMessage('Proszę podać adres dostawy lub wybrać paczkomat.');
+            setMessage('Proszę podać lub wybrać adres dostawy.');
             return;
         }
         setMessage('');
@@ -58,7 +43,7 @@ const RentalModal = ({ offer, onClose }) => {
         const rentalData = {
             offerId: offer.id,
             rentalDays,
-            deliveryAddress: address // Wysyłamy cały obiekt adresu
+            deliveryAddress: address,
         };
 
         try {
@@ -73,7 +58,14 @@ const RentalModal = ({ offer, onClose }) => {
         }
     };
 
-    // ... (funkcja handleAddFunds bez zmian)
+    const handleAddFunds = () => {
+        alert("Symulacja: Przekierowanie do strony płatności...");
+        const updatedUser = { ...currentUser, balance: currentUser.balance + 50 };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify({ ...authService.getCurrentUser(), balance: updatedUser.balance }));
+    };
+
+
 
     return (
         <div className="modal-backdrop">
@@ -88,31 +80,14 @@ const RentalModal = ({ offer, onClose }) => {
                             <input type="range" min="1" max="30" value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} className="form-range" />
                         </div>
 
+                        {/* === ZASTOSOWANIE REUŻYWALNEGO KOMPONENTU === */}
                         <div className="form-group">
-                            <label>Metoda dostawy:</label>
-                            <div className="delivery-options">
-                                <button type="button" className={address.type === 'HOME' ? 'active' : ''} onClick={() => handleAddressTypeChange('HOME')}>Dostawa do domu</button>
-                                <button type="button" className={address.type === 'PARCEL_LOCKER' ? 'active' : ''} onClick={() => handleAddressTypeChange('PARCEL_LOCKER')}>Paczkomat</button>
-                            </div>
+                            <label>Adres dostawy</label>
+                            <AddressSelection address={address} setAddress={setAddress} />
                         </div>
 
-                        {address.type === 'HOME' && (
-                            <div className="address-form-fields">
-                                <input type="text" name="street" placeholder="Ulica i numer" className="form-control" value={address.street || ''} onChange={(e) => setAddress(prev => ({ ...prev, street: e.target.value }))} required />
-                                <input type="text" name="city" placeholder="Miasto" className="form-control" value={address.city || ''} onChange={(e) => setAddress(prev => ({ ...prev, city: e.target.value }))} required />
-                                <input type="text" name="postalCode" placeholder="Kod pocztowy" className="form-control" value={address.postalCode || ''} onChange={(e) => setAddress(prev => ({ ...prev, postalCode: e.target.value }))} required />
-                            </div>
-                        )}
-
-                        {address.type === 'PARCEL_LOCKER' && (
-                            <div className="form-group">
-                                <label>Wybierz paczkomat z mapy:</label>
-                                <ParcelLockerMap onSelectLocker={(lockerAddress) => setAddress({ type: 'PARCEL_LOCKER', street: lockerAddress, city: 'N/A', postalCode: 'N/A', country: 'Polska' })} />
-                                {address.street && <p style={{marginTop: '0.5rem'}}>Wybrano: <strong>{address.street}</strong></p>}
-                            </div>
-                        )}
                         <div className="form-group">
-                            <button type="submit" className="button is-primary" style={{marginTop: '0.5rem'}}>Dalej</button>
+                            <button type="submit" className="button is-primary" style={{marginTop: '1rem'}}>Dalej</button>
                         </div>
                     </form>
                 )}
@@ -135,7 +110,7 @@ const RentalModal = ({ offer, onClose }) => {
                         ) : (
                             <>
                                 <p className="alert alert-danger">Masz za mało środków na koncie, aby wypożyczyć tę płytę.</p>
-                                <button onClick={handleAddFunds} className="button">
+                                <button onClick={() => { handleAddFunds() }} className="button">
                                     Doładuj konto (Symulacja)
                                 </button>
                             </>

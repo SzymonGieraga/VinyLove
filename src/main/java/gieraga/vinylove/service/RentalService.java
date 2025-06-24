@@ -4,6 +4,7 @@ import gieraga.vinylove.dto.AddressDto;
 import gieraga.vinylove.dto.RentalDto;
 import gieraga.vinylove.dto.RentalRequestDto;
 import gieraga.vinylove.model.*;
+import gieraga.vinylove.repo.AddressRepo;
 import gieraga.vinylove.repo.RecordOfferRepo;
 import gieraga.vinylove.repo.UserRepo;
 import gieraga.vinylove.repo.RentalRepo;
@@ -26,6 +27,7 @@ public class RentalService {
     private final RecordOfferRepo recordOfferRepo;
     private final AuthService authService;
     private final UserRepo userRepo;
+    private final AddressRepo addressRepo;
 
     private static final BigDecimal RENTAL_DEPOSIT = new BigDecimal("50.00");
 
@@ -58,13 +60,24 @@ public class RentalService {
         recordOfferRepo.save(offer);
 
         AddressDto addressDto = rentalRequestDto.getDeliveryAddress();
-        Address deliveryAddress = new Address();
-        deliveryAddress.setUser(renter);
-        deliveryAddress.setType(addressDto.getType());
-        deliveryAddress.setStreet(addressDto.getStreet());
-        deliveryAddress.setCity(addressDto.getCity());
-        deliveryAddress.setPostalCode(addressDto.getPostalCode());
-        deliveryAddress.setCountry(addressDto.getCountry());
+        Address deliveryAddress;
+
+        if (addressDto.getId() != null) {
+            deliveryAddress = addressRepo.findById(addressDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Wybrany adres nie istnieje."));
+            if (!deliveryAddress.getUser().equals(renter)) {
+                throw new AccessDeniedException("Próba użycia nieautoryzowanego adresu.");
+            }
+        } else {
+            deliveryAddress = new Address();
+            deliveryAddress.setUser(renter);
+            deliveryAddress.setType(addressDto.getType());
+            deliveryAddress.setStreet(addressDto.getStreet());
+            deliveryAddress.setCity(addressDto.getCity());
+            deliveryAddress.setPostalCode(addressDto.getPostalCode());
+            deliveryAddress.setCountry(addressDto.getCountry());
+        }
+
 
         Rental rental = new Rental();
         rental.setRenter(renter);
@@ -76,11 +89,9 @@ public class RentalService {
 
         Rental savedRental = rentalRepo.save(rental);
 
-        // Zwracamy DTO, co jest bezpieczne i rozwiązuje problem
         return mapToDto(savedRental);
     }
 
-    // Pozostałe metody bez zmian...
     @Transactional(readOnly = true)
     public Page<RentalDto> getRentalsForProfile(String username, String viewMode, Pageable pageable) {
         Page<Rental> rentals;

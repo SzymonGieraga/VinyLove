@@ -9,10 +9,12 @@ import gieraga.vinylove.model.Address;
 import gieraga.vinylove.model.OfferStatus;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.model.User;
+import gieraga.vinylove.repo.AddressRepo;
 import gieraga.vinylove.repo.RecordOfferRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +27,7 @@ public class OfferService {
 
     private final RecordOfferRepo recordOfferRepo;
     private final OfferConverter offerConverter;
+    private final AddressRepo addressRepo;
 
     private final FileStorageService fileStorageService;
     private final AuthService authService;
@@ -39,19 +42,31 @@ public class OfferService {
     public OfferDetailsDto createOffer(CreateOfferDto dto, MultipartFile coverImage, MultipartFile audioSample) {
         User owner = authService.getAuthenticatedUser();
         if (owner == null) {
-            throw new IllegalStateException("Nie znaleziono zalogowanego użytkownika.");
+            throw new IllegalStateException("Użytkownik nie jest zalogowany.");
         }
 
         String coverImageUrl = fileStorageService.store(coverImage);
         String audioSampleUrl = fileStorageService.store(audioSample);
 
-        Address returnAddress = new Address();
-        returnAddress.setUser(owner);
-        returnAddress.setType(dto.getReturnAddress().getType());
-        returnAddress.setStreet(dto.getReturnAddress().getStreet());
-        returnAddress.setCity(dto.getReturnAddress().getCity());
-        returnAddress.setPostalCode(dto.getReturnAddress().getPostalCode());
-        returnAddress.setCountry(dto.getReturnAddress().getCountry());
+        AddressDto addressDto = dto.getReturnAddress();
+        Address returnAddress;
+
+        if (addressDto.getId() != null) {
+            returnAddress = addressRepo.findById(addressDto.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Wybrany adres nie istnieje."));
+
+            if (!returnAddress.getUser().getId().equals(owner.getId())) {
+                throw new AccessDeniedException("Próba użycia nieautoryzowanego adresu.");
+            }
+        } else {
+            returnAddress = new Address();
+            returnAddress.setUser(owner);
+            returnAddress.setType(addressDto.getType());
+            returnAddress.setStreet(addressDto.getStreet());
+            returnAddress.setCity(addressDto.getCity());
+            returnAddress.setPostalCode(addressDto.getPostalCode());
+            returnAddress.setCountry(addressDto.getCountry());
+        }
 
         RecordOffer offer = new RecordOffer();
         offer.setOwner(owner);
@@ -64,7 +79,6 @@ public class OfferService {
         offer.setStatus(OfferStatus.AVAILABLE);
 
         RecordOffer savedOffer = recordOfferRepo.save(offer);
-
         return offerConverter.toDetailsDto(savedOffer);
     }
 

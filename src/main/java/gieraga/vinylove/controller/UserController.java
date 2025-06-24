@@ -1,10 +1,6 @@
 package gieraga.vinylove.controller;
 
-import gieraga.vinylove.dto.RentalDto;
-import gieraga.vinylove.dto.SimpleReviewDto;
-import gieraga.vinylove.dto.UserDto;
-import gieraga.vinylove.dto.UserProfileDto;
-import gieraga.vinylove.model.User;
+import gieraga.vinylove.dto.*; // Zmieniono na wildcard dla czystości
 import gieraga.vinylove.service.RentalService;
 import gieraga.vinylove.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +10,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,6 +35,7 @@ public class UserController {
 
         return ResponseEntity.ok(userService.getReviewsForProfile(username, viewMode, reviewType, pageable));
     }
+
     @PutMapping("/profile")
     public ResponseEntity<UserDto> updateProfile(
             @RequestPart(value = "description", required = false) String description,
@@ -53,5 +52,10 @@ public class UserController {
             @PageableDefault(size = 5) Pageable pageable) {
 
         return ResponseEntity.ok(rentalService.getRentalsForProfile(username, viewMode, pageable));
+    }
+
+    @GetMapping("/my-addresses")
+    public ResponseEntity<List<AddressDto>> getMyAddresses() {
+        return ResponseEntity.ok(userService.getAddressesForCurrentUser());
     }
 }

@@ -55,12 +55,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/offers/{offerId}/reviews").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users/{username}/reviews").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/my-addresses").authenticated()
                         .requestMatchers("/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
 
                         // --- 3. ENDPOINTY ADMINA ---
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // --- 4. POZOSTAŁE ŻĄDANIA ---
                         // Każde inne, nie wymienione powyżej żądanie wymaga uwierzytelnienia

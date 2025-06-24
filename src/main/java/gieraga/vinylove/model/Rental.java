@@ -32,7 +32,7 @@ public class Rental {
     @Column(nullable = false)
     private LocalDate returnDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "delivery_address_id", referencedColumnName = "id")
     private Address deliveryAddress;
 

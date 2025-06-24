@@ -1,8 +1,6 @@
 import api from './api';
 
-const createRental = (rentalData) => {
-    return api.post('/rentals', rentalData);
-};
+const createRental = (rentalData) => { return api.post('/rentals', rentalData); };
 
 const getProfileRentals = (username, viewMode, page = 0) => {
     return api.get(`/users/${username}/rentals`, {
@@ -11,7 +9,8 @@ const getProfileRentals = (username, viewMode, page = 0) => {
 };
 
 const updateRentalStatus = (rentalId, newStatus) => {
-    return api.put(`/rentals/${rentalId}/status`, `"${newStatus}"`); }
+    return api.put(`/rentals/${rentalId}/status`, `"${newStatus}"`);
+};
 
 const rentalService = {
     createRental,

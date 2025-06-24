@@ -2,6 +2,7 @@ package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
 import gieraga.vinylove.converter.UserConverter;
+import gieraga.vinylove.dto.AddressDto;
 import gieraga.vinylove.dto.SimpleReviewDto;
 import gieraga.vinylove.dto.UserDto;
 import gieraga.vinylove.dto.UserProfileDto;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import gieraga.vinylove.service.AuthService;
+import gieraga.vinylove.converter.AddressConverter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +43,7 @@ public class UserService {
     private final AuthService authService;
     private final FileStorageService fileStorageService;
     private final UserConverter userConverter;
+    private final AddressConverter addressConverter;
 
     // Metody mapujące pozostają bez zmian
     private SimpleReviewDto mapToSimpleDto(RecordReview review) {
@@ -170,5 +173,16 @@ public class UserService {
 
         // Zwracamy DTO zamiast encji
         return userConverter.toDto(updatedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AddressDto> getAddressesForCurrentUser() {
+        User currentUser = authService.getAuthenticatedUser();
+        if (currentUser == null) {
+            return List.of();
+        }
+        return currentUser.getAddresses().stream()
+                .map(addressConverter::toDto)
+                .collect(Collectors.toList());
     }
 }

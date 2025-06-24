@@ -50,7 +50,7 @@ public class RecordOffer {
     @OneToMany(mappedBy = "recordOffer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecordReview> reviews;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "return_address_id", referencedColumnName = "id")
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "return_address_id")
     private Address returnAddress;
 }
