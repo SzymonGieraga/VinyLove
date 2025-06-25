@@ -20,12 +20,21 @@ const addReviewForOffer = (offerId, reviewData) => {
     return api.post(`/offers/${offerId}/reviews`, reviewData);
 };
 
+const updateOffer = (offerId, formData) => {
+    return api.put(`/offers/${offerId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
+
 const offerService = {
     getOffers,
     createOffer,
     getOfferDetails,
     getReviewsForOffer,
     addReviewForOffer,
+    updateOffer
 };
 
 export default offerService;

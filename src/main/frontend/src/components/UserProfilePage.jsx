@@ -93,7 +93,13 @@ const UserProfilePage = () => {
                 </div>
 
                 <main className="profile-content">
-                    {activeTab === 'offers' && <UserOffersTab offers={offers} isOwner={isOwner} />}
+                    {activeTab === 'offers' && (
+                        <UserOffersTab
+                            offers={offers}
+                            isOwner={isOwner}
+                            onOfferUpdated={fetchProfileData}
+                        />
+                    )}
                     {activeTab === 'reviews' && (
                         <ProfileReviewsTab
                             username={username}

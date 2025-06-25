@@ -1,10 +1,7 @@
 package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
-import gieraga.vinylove.dto.AddressDto;
-import gieraga.vinylove.dto.CreateOfferDto;
-import gieraga.vinylove.dto.OfferDetailsDto;
-import gieraga.vinylove.dto.OfferDto;
+import gieraga.vinylove.dto.*;
 import gieraga.vinylove.model.Address;
 import gieraga.vinylove.model.OfferStatus;
 import gieraga.vinylove.model.RecordOffer;
@@ -98,6 +95,55 @@ public class OfferService {
             offersPage = recordOfferRepo.findByStatus(OfferStatus.AVAILABLE, pageable);
         }
         return offersPage.map(offerConverter::toDto);
+    }
+
+    @Transactional
+    public OfferDetailsDto updateOffer(Long offerId, UpdateOfferDto dto, MultipartFile coverImage, MultipartFile audioSample) {
+        User currentUser = authService.getAuthenticatedUser();
+        RecordOffer offer = recordOfferRepo.findById(offerId)
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono oferty o ID: " + offerId));
+
+        if (!offer.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Nie masz uprawnień do edycji tej oferty.");
+        }
+        if (dto.getTitle() != null) {
+            offer.setTitle(dto.getTitle());
+        }
+        if (dto.getArtists() != null) {
+            offer.setArtists(dto.getArtists());
+        }
+        if (dto.getDescription() != null) {
+            offer.setDescription(dto.getDescription());
+        }
+
+        // Walidacja i aktualizacja statusu
+        if (dto.getStatus() != null) {
+            // Zabezpieczenie przed zmianą statusu, gdy oferta jest wypożyczona
+            if (offer.getStatus() == OfferStatus.RENTED && dto.getStatus() != OfferStatus.RENTED) {
+                throw new IllegalStateException("Nie można zmienić statusu oferty, która jest aktualnie wypożyczona.");
+            }
+            offer.setStatus(dto.getStatus());
+        }
+
+        // Aktualizacja plików, jeśli zostały przesłane
+        if (coverImage != null && !coverImage.isEmpty()) {
+            // Opcjonalnie: usuń stary plik, jeśli istnieje
+            if (offer.getCoverImageUrl() != null) {
+                fileStorageService.delete(offer.getCoverImageUrl());
+            }
+            String newCoverImageUrl = fileStorageService.store(coverImage);
+            offer.setCoverImageUrl(newCoverImageUrl);
+        }
+        if (audioSample != null && !audioSample.isEmpty()) {
+            if (offer.getAudioSampleUrl() != null) {
+                fileStorageService.delete(offer.getAudioSampleUrl());
+            }
+            String newAudioSampleUrl = fileStorageService.store(audioSample);
+            offer.setAudioSampleUrl(newAudioSampleUrl);
+        }
+
+        RecordOffer updatedOffer = recordOfferRepo.save(offer);
+        return offerConverter.toDetailsDto(updatedOffer);
     }
 
 }

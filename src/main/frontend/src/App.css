@@ -762,17 +762,21 @@ body {
 .status-archived { background-color: var(--danger-color); }
 
 .owner-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 .owner-actions button {
-  font-size: 0.8rem;
-  padding: 0.3rem 0.6rem;
+    width: 100%;
+    flex-grow: 1;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    text-align: center;
+    background-color: var(--highlight-color);
 }
 .owner-actions button.danger {
-  background-color: var(--danger-color);
-  color: var(--button-primary-text);
+    background-color: var(--danger-color);
+    color: var(--button-primary-text);
 }
 
 .profile-link {

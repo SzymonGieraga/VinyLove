@@ -2,6 +2,7 @@ package gieraga.vinylove.controller;
 
 import gieraga.vinylove.dto.OfferDetailsDto;
 import gieraga.vinylove.dto.OfferDto;
+import gieraga.vinylove.dto.UpdateOfferDto;
 import gieraga.vinylove.service.OfferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,5 +49,16 @@ public class OfferController {
             @PageableDefault(size = 9, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<OfferDto> offers = offerService.getAvailableOffers(query, pageable);
         return ResponseEntity.ok(offers);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OfferDetailsDto> updateOffer(
+            @PathVariable Long id,
+            @RequestPart("data") UpdateOfferDto dto,
+            @RequestPart(value = "coverImage", required = false) MultipartFile coverImage,
+            @RequestPart(value = "audioSample", required = false) MultipartFile audioSample) {
+
+        OfferDetailsDto updatedOffer = offerService.updateOffer(id, dto, coverImage, audioSample);
+        return ResponseEntity.ok(updatedOffer);
     }
 }
