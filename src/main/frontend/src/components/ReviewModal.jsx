@@ -25,8 +25,8 @@ const ReviewModal = ({ offerId, isOpen, onClose, onReviewAdded }) => {
             setRating(0);
             setComment('');
             setMessage('');
-            onReviewAdded(); // Odśwież listę recenzji
-            onClose();       // Zamknij modal po sukcesie
+            onReviewAdded();
+            onClose();
         } catch (error) {
             setMessage('Wystąpił błąd podczas dodawania recenzji.');
         } finally {

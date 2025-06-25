@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import EditOfferModal from './EditOfferModal'; // <-- NOWY IMPORT
+import EditOfferModal from './EditOfferModal';
 
 const UserOffersTab = ({ offers, isOwner, onOfferUpdated }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +17,6 @@ const UserOffersTab = ({ offers, isOwner, onOfferUpdated }) => {
 
     return (
         <>
-            {/* Renderujemy nasz nowy modal */}
             <EditOfferModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -42,7 +41,6 @@ const UserOffersTab = ({ offers, isOwner, onOfferUpdated }) => {
                                     </div>
                                 </div>
                             </Link>
-                            {/* ZASTĘPUJEMY STARE PRZYCISKI JEDNYM */}
                             {isOwner && (
                                 <div className="owner-actions">
                                     <button onClick={() => handleEditClick(offer)}>Edytuj</button>

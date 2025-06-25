@@ -39,7 +39,7 @@ public class OfferController {
 
     @GetMapping("/{id}")
     public ResponseEntity<OfferDetailsDto> getOfferDetails(@PathVariable Long id) {
-        OfferDetailsDto offerDetails = offerService.getOfferById(id);
+        OfferDetailsDto offerDetails = offerService.getOfferDetails(id);
         return ResponseEntity.ok(offerDetails);
     }
 

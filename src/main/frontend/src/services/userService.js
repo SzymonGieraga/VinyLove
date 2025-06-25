@@ -10,6 +10,10 @@ const getProfileReviews = (username, viewMode, reviewType, page = 0) => {
     });
 };
 
+const getMyObservedOffers = () => {
+    return api.get('/users/me/observed');
+};
+
 const getMyAddresses = () => {
     return api.get('/users/my-addresses');
 };
@@ -27,7 +31,8 @@ const userService = {
     getUserProfile,
     getProfileReviews,
     updateUserProfile,
-    getMyAddresses
+    getMyAddresses,
+    getMyObservedOffers
 };
 
 export default userService;

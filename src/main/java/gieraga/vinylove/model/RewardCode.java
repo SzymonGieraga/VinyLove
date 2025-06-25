@@ -22,20 +22,25 @@ public class RewardCode {
     private String code;
 
     @Column(nullable = false)
+    private Integer discountPercentage;
+
+    @Column(nullable = false)
+    private boolean isUsed = false;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
-    // Użytkownik, do którego przypisany jest kod
+    private LocalDateTime usedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Metoda pomocnicza ustawiająca daty przy tworzeniu
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        expiresAt = createdAt.plusMonths(1);
     }
 }

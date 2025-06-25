@@ -2,10 +2,7 @@ package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
 import gieraga.vinylove.dto.*;
-import gieraga.vinylove.model.Address;
-import gieraga.vinylove.model.OfferStatus;
-import gieraga.vinylove.model.RecordOffer;
-import gieraga.vinylove.model.User;
+import gieraga.vinylove.model.*;
 import gieraga.vinylove.repo.AddressRepo;
 import gieraga.vinylove.repo.RecordOfferRepo;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +12,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import gieraga.vinylove.repo.UserRepo;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -25,6 +23,7 @@ public class OfferService {
     private final RecordOfferRepo recordOfferRepo;
     private final OfferConverter offerConverter;
     private final AddressRepo addressRepo;
+    private final UserRepo userRepo;
 
     private final FileStorageService fileStorageService;
     private final AuthService authService;
@@ -38,9 +37,6 @@ public class OfferService {
     @Transactional
     public OfferDetailsDto createOffer(CreateOfferDto dto, MultipartFile coverImage, MultipartFile audioSample) {
         User owner = authService.getAuthenticatedUser();
-        if (owner == null) {
-            throw new IllegalStateException("Użytkownik nie jest zalogowany.");
-        }
 
         String coverImageUrl = fileStorageService.store(coverImage);
         String audioSampleUrl = fileStorageService.store(audioSample);
@@ -76,14 +72,22 @@ public class OfferService {
         offer.setStatus(OfferStatus.AVAILABLE);
 
         RecordOffer savedOffer = recordOfferRepo.save(offer);
-        return offerConverter.toDetailsDto(savedOffer);
+        return offerConverter.toDetailsDto(savedOffer, false);
     }
 
     @Transactional(readOnly = true)
-    public OfferDetailsDto getOfferById(Long id) {
+    public OfferDetailsDto getOfferDetails(Long id) {
         RecordOffer offer = recordOfferRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono oferty o ID: " + id));
-        return offerConverter.toDetailsDto(offer);
+
+        User currentUser = authService.getOptionalAuthenticatedUser().orElse(null);
+
+        boolean isObserved = false;
+        if (currentUser != null) {
+            isObserved = userRepo.isObservingOffer(currentUser.getUsername(), id);
+        }
+
+        return offerConverter.toDetailsDto(offer, isObserved);
     }
 
     @Transactional(readOnly = true)
@@ -103,9 +107,13 @@ public class OfferService {
         RecordOffer offer = recordOfferRepo.findById(offerId)
                 .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono oferty o ID: " + offerId));
 
-        if (!offer.getOwner().getId().equals(currentUser.getId())) {
+        boolean isOwner = offer.getOwner().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == UserRole.ROLE_ADMIN;
+
+        if (!isOwner && !isAdmin) {
             throw new AccessDeniedException("Nie masz uprawnień do edycji tej oferty.");
         }
+
         if (dto.getTitle() != null) {
             offer.setTitle(dto.getTitle());
         }
@@ -115,19 +123,14 @@ public class OfferService {
         if (dto.getDescription() != null) {
             offer.setDescription(dto.getDescription());
         }
-
-        // Walidacja i aktualizacja statusu
         if (dto.getStatus() != null) {
-            // Zabezpieczenie przed zmianą statusu, gdy oferta jest wypożyczona
             if (offer.getStatus() == OfferStatus.RENTED && dto.getStatus() != OfferStatus.RENTED) {
                 throw new IllegalStateException("Nie można zmienić statusu oferty, która jest aktualnie wypożyczona.");
             }
             offer.setStatus(dto.getStatus());
         }
 
-        // Aktualizacja plików, jeśli zostały przesłane
         if (coverImage != null && !coverImage.isEmpty()) {
-            // Opcjonalnie: usuń stary plik, jeśli istnieje
             if (offer.getCoverImageUrl() != null) {
                 fileStorageService.delete(offer.getCoverImageUrl());
             }
@@ -143,7 +146,10 @@ public class OfferService {
         }
 
         RecordOffer updatedOffer = recordOfferRepo.save(offer);
-        return offerConverter.toDetailsDto(updatedOffer);
+        boolean isObserved = userRepo.isObservingOffer(currentUser.getUsername(), offerId);
+
+        return offerConverter.toDetailsDto(updatedOffer, isObserved);
     }
+
 
 }

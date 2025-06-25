@@ -29,7 +29,7 @@ const EditProfileForm = ({ currentUserProfile, onSuccess }) => {
 
         try {
             await userService.updateUserProfile(formData);
-            onSuccess(); // Wywołaj funkcję zwrotną (odświeżenie profilu i zamknięcie modala)
+            onSuccess();
         } catch (error) {
             setMessage('Wystąpił błąd podczas aktualizacji profilu.');
         } finally {

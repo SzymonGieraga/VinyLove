@@ -1,35 +1,78 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import parcelLockerService from '../services/parcelLockerService';
 
-const mockParcelLockers = [
-    { id: 'LOD01A', name: 'Paczkomat LOD01A', lat: 51.759247, lng: 19.455982, address: 'al. Politechniki 1, 90-924 Łódź' },
-    { id: 'LOD02B', name: 'Paczkomat LOD02B', lat: 51.768611, lng: 19.456944, address: 'ul. Piotrkowska 104, 90-004 Łódź' },
-    { id: 'LOD03C', name: 'Paczkomat LOD03C', lat: 51.77656, lng: 19.46786, address: 'ul. Zachodnia 56, 91-057 Łódź' },
-    { id: 'LOD04D', name: 'Paczkomat LOD04D', lat: 51.7471, lng: 19.4899, address: 'ul. Rzgowska 58, 93-172 Łódź' }
-];
-
-const ParcelLockerMap = ({ onSelectLocker }) => {
+const ParcelLockerMap = ({ onSelectLocker, isAdmin = false }) => {
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
+    const [lockers, setLockers] = useState([]);
+
+    const fetchLockers = useCallback(() => {
+        parcelLockerService.getLockers()
+            .then(res => setLockers(res.data))
+            .catch(err => console.error("Błąd pobierania paczkomatów:", err));
+    }, []);
 
     useEffect(() => {
+        fetchLockers();
+    }, [fetchLockers]);
+
+    useEffect(() => {
+        const L = window.L;
+        if (!L) return;
+
         if (mapRef.current && !mapInstance.current) {
-            const L = window.L;
-
             mapInstance.current = L.map(mapRef.current).setView([51.759, 19.456], 13);
-
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; OpenStreetMap'
             }).addTo(mapInstance.current);
-
-            mockParcelLockers.forEach(locker => {
-                const marker = L.marker([locker.lat, locker.lng]).addTo(mapInstance.current);
-                marker.bindPopup(`<b>${locker.name}</b><br>${locker.address}`);
-                marker.on('click', () => {
-                    onSelectLocker(`${locker.name}, ${locker.address}`);
-                });
-            });
         }
-    }, [onSelectLocker]);
+
+        const map = mapInstance.current;
+        if (!map) return;
+
+        map.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+            }
+        });
+
+        lockers.forEach(locker => {
+            const marker = L.marker([locker.lat, locker.lng]).addTo(map);
+            marker.bindPopup(`<b>${locker.name}</b><br>${locker.address}`);
+            marker.on('click', () => {
+                if (onSelectLocker) {
+                    onSelectLocker(`${locker.name}, ${locker.address}`);
+                }
+            });
+        });
+
+        if (isAdmin) {
+            const handleMapClick = (e) => {
+                const { lat, lng } = e.latlng;
+                const name = prompt("Podaj nazwę nowego paczkomatu (np. LOD05E):");
+                if (!name) return;
+
+                const address = prompt("Podaj adres paczkomatu:");
+                if (!address) return;
+
+                const newLocker = { name, address, lat, lng };
+
+                parcelLockerService.createLocker(newLocker)
+                    .then(() => {
+                        alert("Paczkomat został pomyślnie dodany!");
+                        fetchLockers(); // Odśwież listę paczkomatów
+                    })
+                    .catch(err => alert("Błąd: " + err.response?.data?.message || "Nie udało się dodać paczkomatu."));
+            };
+
+            map.on('click', handleMapClick);
+
+            return () => {
+                map.off('click', handleMapClick);
+            };
+        }
+
+    }, [lockers, isAdmin, onSelectLocker, fetchLockers]);
 
     return <div ref={mapRef} id="map" style={{ height: '400px', width: '100%', borderRadius: '8px' }}></div>;
 };

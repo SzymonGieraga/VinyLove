@@ -12,6 +12,10 @@ const getOfferReviews = (page = 0, size = 10) => {
     return api.get('/admin/reviews/offers', { params: { page, size } });
 };
 
+const getOffers = (page = 0, size = 10) => {
+    return api.get('/admin/offers', { params: { page, size } });
+};
+
 const deleteOfferReview = (reviewId) => {
     return api.delete(`/admin/reviews/offers/${reviewId}`);
 };
@@ -28,6 +32,7 @@ const deleteUserReview = (reviewId) => {
 const adminService = {
     getUsers,
     toggleUserStatus,
+    getOffers,
     getOfferReviews,
     deleteOfferReview,
     getUserReviews,

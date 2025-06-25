@@ -19,10 +19,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepo userRepo;
 
-    /**
-     * Adnotacja @Transactional(readOnly = true) zapewnia, że metoda wykonuje się
-     * wewnątrz transakcji, co pozwala Hibernate na bezpieczny odczyt pól LOB.
-     */
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

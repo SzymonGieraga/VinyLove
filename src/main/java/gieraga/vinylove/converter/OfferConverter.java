@@ -1,11 +1,13 @@
 package gieraga.vinylove.converter;
 
+import gieraga.vinylove.dto.AdminOfferDto;
 import gieraga.vinylove.dto.OfferDto;
 
 import gieraga.vinylove.dto.UserOfferDto;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.dto.OfferDetailsDto;
 import gieraga.vinylove.model.RecordReview;
+import gieraga.vinylove.model.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,7 +39,7 @@ public class OfferConverter {
 
         return dto;
     }
-    public OfferDetailsDto toDetailsDto(RecordOffer entity) {
+    public OfferDetailsDto toDetailsDto(RecordOffer entity, boolean isObserved) {
         if (entity == null) {
             return null;
         }
@@ -67,6 +69,7 @@ public class OfferConverter {
             dto.setReviewCount(0);
         }
 
+        dto.setObserved(isObserved);
         return dto;
     }
 
@@ -78,6 +81,16 @@ public class OfferConverter {
         dto.setArtists(entity.getArtists());
         dto.setCoverImageUrl(entity.getCoverImageUrl());
         dto.setStatus(entity.getStatus());
+        return dto;
+    }
+
+    public AdminOfferDto toAdminDto(RecordOffer offer) {
+        AdminOfferDto dto = new AdminOfferDto();
+        dto.setId(offer.getId());
+        dto.setTitle(offer.getTitle());
+        dto.setArtists(offer.getArtists());
+        dto.setStatus(offer.getStatus());
+        dto.setOwnerUsername(offer.getOwner().getUsername());
         return dto;
     }
 }

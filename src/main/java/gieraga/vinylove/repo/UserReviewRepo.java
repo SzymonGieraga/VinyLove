@@ -9,8 +9,8 @@ import java.util.List;
 public interface UserReviewRepo extends JpaRepository<UserReview, Long> {
 
     Page<UserReview> findByReviewerUsername(String username, Pageable pageable);
-    List<UserReview> findByReviewerUsername(String username); // Wersja bez paginacji
+    List<UserReview> findByReviewerUsername(String username);
 
     Page<UserReview> findByReviewedUserUsername(String username, Pageable pageable);
-    List<UserReview> findByReviewedUserUsername(String username); // Wersja bez paginacji
+    List<UserReview> findByReviewedUserUsername(String username);
 }

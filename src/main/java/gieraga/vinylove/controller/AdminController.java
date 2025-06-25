@@ -1,5 +1,6 @@
 package gieraga.vinylove.controller;
 
+import gieraga.vinylove.dto.AdminOfferDto;
 import gieraga.vinylove.dto.AdminRecordReviewDto;
 import gieraga.vinylove.dto.AdminUserDto;
 import gieraga.vinylove.dto.AdminUserReviewDto;
@@ -50,5 +51,10 @@ public class AdminController {
     public ResponseEntity<Void> deleteUserReview(@PathVariable Long reviewId) {
         adminService.deleteUserReview(reviewId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/offers")
+    public ResponseEntity<Page<AdminOfferDto>> getAllOffers(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(adminService.getAllOffers(pageable));
     }
 }

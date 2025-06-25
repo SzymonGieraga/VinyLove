@@ -1,7 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import OfferReviewManagementTab from './OfferReviewManagementTab';
 import UserReviewManagementTab from './UserReviewManagementTab';
+import OfferManagementTab from "./OfferManagmentTab";
 import adminService from "../services/adminService";
+import ParcelLockerMap from './ParcelLockerMap';
 
 const UserManagementTab = () => {
     const [users, setUsers] = useState([]);
@@ -33,6 +35,7 @@ const UserManagementTab = () => {
             })
             .catch(() => alert("Wystąpił błąd."));
     };
+
 
     if (loading) return <p>Ładowanie użytkowników...</p>;
 
@@ -80,6 +83,18 @@ const UserManagementTab = () => {
 const AdminPage = () => {
     const [activeTab, setActiveTab] = useState('users');
 
+    const ParcelLockerManagementTab = () => (
+        <div>
+            <h3>Zarządzanie paczkomatami</h3>
+            <p>Kliknij na mapie, aby dodać nowy paczkomat.</p>
+            <div style={{marginTop: '1rem'}}>
+
+                <ParcelLockerMap isAdmin={true} />
+            </div>
+        </div>
+    );
+
+
     return (
         <div className="container">
             <header className="jumbotron">
@@ -92,13 +107,15 @@ const AdminPage = () => {
                 <button className={`tab-button ${activeTab === 'offer-reviews' ? 'active' : ''}`} onClick={() => setActiveTab('offer-reviews')}>Recenzje Ofert</button>
                 <button className={`tab-button ${activeTab === 'user-reviews' ? 'active' : ''}`} onClick={() => setActiveTab('user-reviews')}>Recenzje Użytkowników</button>
                 <button className={`tab-button ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>Oferty</button>
+                <button className={`tab-button ${activeTab === 'parcel-lockers' ? 'active' : ''}`} onClick={() => setActiveTab('parcel-lockers')}>Paczkomaty</button>
             </div>
 
             <main className="profile-content">
                 {activeTab === 'users' && <UserManagementTab />}
                 {activeTab === 'offer-reviews' && <OfferReviewManagementTab />}
                 {activeTab === 'user-reviews' && <UserReviewManagementTab />}
-                {activeTab === 'offers' && <p>Zarządzanie ofertami w budowie...</p>}
+                {activeTab === 'offers' && <OfferManagementTab />}
+                {activeTab === 'parcel-lockers' && <ParcelLockerManagementTab />}
             </main>
         </div>
     );

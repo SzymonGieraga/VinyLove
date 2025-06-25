@@ -28,6 +28,7 @@ public class ReviewService {
     private final AuthService authService;
     private final UserRepo userRepo;
     private final UserReviewRepo userReviewRepo;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<ReviewDto> getReviewsForOffer(Long offerId) {
@@ -49,6 +50,12 @@ public class ReviewService {
         review.setCreatedAt(LocalDateTime.now());
 
         RecordReview savedReview = reviewRepo.save(review);
+
+        User owner = offer.getOwner();
+        if (!owner.equals(savedReview.getAuthor())) {
+            String message = "Otrzymałeś nową recenzję dla oferty '" + offer.getTitle() + "' od " + savedReview.getAuthor().getUsername() + ".";
+            notificationService.createNotification(owner, message, NotificationType.OFFER_REVIEW, offer.getId()); // <-- ZMIANA
+        }
 
         return mapToDto(savedReview);
     }
@@ -84,11 +91,14 @@ public class ReviewService {
 
         UserReview savedReview = userReviewRepo.save(review);
 
-        // Zwracamy DTO, co jest bezpieczne i rozwiązuje problem z serializacją
+
+
+        String message = "Użytkownik " + savedReview.getReviewer().getUsername() + " wystawił Ci recenzję.";
+        notificationService.createNotification(reviewedUser, message, NotificationType.USER_REVIEW, reviewedUser.getId());
+
         return mapToSimpleDto(savedReview);
     }
 
-    // Metoda pomocnicza do mapowania UserReview na SimpleReviewDto
     private SimpleReviewDto mapToSimpleDto(UserReview review) {
         SimpleReviewDto dto = new SimpleReviewDto();
         dto.setId(review.getId());

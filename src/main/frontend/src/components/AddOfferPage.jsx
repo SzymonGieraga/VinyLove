@@ -48,13 +48,10 @@ const AddOfferPage = () => {
     };
 
     return (
-        // Dodano nową klasę, aby formularz był szerszy
         <div className="form-container add-offer-container">
             <h2>Dodaj nową ofertę</h2>
             <form onSubmit={handleSubmit}>
-                {/* Nowy kontener dla układu dwukolumnowego */}
                 <div className="add-offer-layout">
-                    {/* Lewa kolumna: Dane oferty */}
                     <div className="offer-details-column">
                         <div className="form-group">
                             <label htmlFor="title">Tytuł albumu</label>
@@ -77,7 +74,6 @@ const AddOfferPage = () => {
                             <input type="file" id="audioSample" className="form-control" accept="audio/*" onChange={(e) => handleFileChange(e, setAudioSample)} />
                         </div>
                     </div>
-                    {/* Prawa kolumna: Wybór adresu */}
                     <div className="address-column">
                         <div className="form-group">
                             <label>Adres do zwrotu płyty</label>
@@ -86,7 +82,6 @@ const AddOfferPage = () => {
                     </div>
                 </div>
 
-                {/* Przycisk i wiadomości pod kolumnami */}
                 <div className="form-group form-submit-group">
                     <button className="button is-primary" disabled={loading}>
                         {loading ? 'Dodawanie...' : 'Dodaj ofertę'}

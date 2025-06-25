@@ -2,10 +2,7 @@ package gieraga.vinylove.service;
 
 import gieraga.vinylove.converter.OfferConverter;
 import gieraga.vinylove.converter.UserConverter;
-import gieraga.vinylove.dto.AddressDto;
-import gieraga.vinylove.dto.SimpleReviewDto;
-import gieraga.vinylove.dto.UserDto;
-import gieraga.vinylove.dto.UserProfileDto;
+import gieraga.vinylove.dto.*;
 import gieraga.vinylove.model.RecordOffer;
 import gieraga.vinylove.model.RecordReview;
 import gieraga.vinylove.model.User;
@@ -25,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import gieraga.vinylove.service.AuthService;
 import gieraga.vinylove.converter.AddressConverter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,7 +43,6 @@ public class UserService {
     private final UserConverter userConverter;
     private final AddressConverter addressConverter;
 
-    // Metody mapujące pozostają bez zmian
     private SimpleReviewDto mapToSimpleDto(RecordReview review) {
         SimpleReviewDto dto = new SimpleReviewDto();
         User author = review.getAuthor();
@@ -171,7 +168,6 @@ public class UserService {
 
         User updatedUser = userRepo.save(user);
 
-        // Zwracamy DTO zamiast encji
         return userConverter.toDto(updatedUser);
     }
 
@@ -183,6 +179,26 @@ public class UserService {
         }
         return currentUser.getAddresses().stream()
                 .map(addressConverter::toDto)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public BigDecimal fundUserAccount(BigDecimal amount) {
+        User currentUser = authService.getAuthenticatedUser();
+
+        BigDecimal newBalance = currentUser.getBalance().add(amount);
+        currentUser.setBalance(newBalance);
+
+        userRepo.save(currentUser);
+
+        return newBalance;
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<UserOfferDto> getObservedOffersForCurrentUser() {
+        User currentUser = authService.getAuthenticatedUser();
+        return currentUser.getObservedOffers().stream()
+                .map(offerConverter::toUserOfferDto)
                 .collect(Collectors.toList());
     }
 }

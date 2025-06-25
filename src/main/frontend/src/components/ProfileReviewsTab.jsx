@@ -14,7 +14,6 @@ const ReviewCard = ({ review, canDelete, onDelete }) => {
 
     return (
         <div className="review-card">
-            {/* Przycisk usuwania przeniesiony na górę */}
             {canDelete && (
                 <button onClick={() => onDelete(review.id, review.reviewType)} className="delete-button"
                         title="Usuń recenzję">
@@ -72,7 +71,6 @@ const ProfileReviewsTab = ({username, isOwner}) => {
         fetchReviews(0);
     }, [fetchReviews]);
 
-    // === POPRAWIONA FUNKCJA handleDelete ===
     const handleDelete = async (reviewId, type) => {
         if (!window.confirm("Czy na pewno chcesz usunąć tę recenzję?")) return;
 
@@ -83,7 +81,6 @@ const ProfileReviewsTab = ({username, isOwner}) => {
                 await reviewService.deleteUserReview(reviewId);
             }
             alert("Recenzja usunięta.");
-            // Wywołaj lokalną funkcję odświeżającą, zamiast propa
             fetchReviews(0);
         } catch (error) {
             alert("Błąd podczas usuwania recenzji.");

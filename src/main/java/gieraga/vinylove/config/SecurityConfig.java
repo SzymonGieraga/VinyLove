@@ -40,8 +40,6 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // --- 1. ENDPOINTY PUBLICZNE ---
-                        // Ta jedna reguła obsługuje /login, /register itp.
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/**").permitAll()
@@ -49,22 +47,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/rentals").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/offers/{offerId}/reviews").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}/reviews").permitAll()
-
-                        // --- 2. ENDPOINTY CHRONIONE (dla zalogowanych użytkowników) ---
                         .requestMatchers(HttpMethod.POST, "/api/offers").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/offers/{offerId}/reviews").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/users/{username}/reviews").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/my-addresses").authenticated()
-                        .requestMatchers("/api/rentals/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/rentals").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/rentals/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/auth/change-password").authenticated()
-
-                        // --- 3. ENDPOINTY ADMINA ---
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/parcel-lockers").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/parcel-lockers").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // --- 4. POZOSTAŁE ŻĄDANIA ---
-                        // Każde inne, nie wymienione powyżej żądanie wymaga uwierzytelnienia
+                        .requestMatchers(HttpMethod.GET, "/api/users/me/observed").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/observe/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/observe/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/account/fund").authenticated()
+                        .requestMatchers("/api/reward-codes/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -101,4 +101,5 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(provider);
     }
+
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import rentalService from '../services/rentalService';
 import authService from "../services/authService";
 import AddressSelection from './AddressSelection';
@@ -18,11 +19,15 @@ const RentalModal = ({ offer, onClose }) => {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const navigate = useNavigate();
+
     const RENTAL_DEPOSIT = 50.00;
 
     useEffect(() => {
         const user = authService.getCurrentUser();
-        user.balance = user.balance || 100.00;
+        if (user && typeof user.balance === 'undefined') {
+            user.balance = 100.00;
+        }
         setCurrentUser(user);
     }, []);
 
@@ -48,8 +53,13 @@ const RentalModal = ({ offer, onClose }) => {
 
         try {
             await rentalService.createRental(rentalData);
-            setMessage('Wypożyczenie zostało pomyślnie zgłoszone!');
-            setTimeout(() => window.location.reload(), 2000);
+            setMessage('Wypożyczenie zostało pomyślnie zgłoszone! Zaraz zostaniesz przeniesiony na stronę główną.');
+
+            setTimeout(() => {
+                onClose(); // Zamknij modal przed przekierowaniem
+                navigate('/');
+            }, 2000);
+
         } catch (error) {
             const resMessage = (error.response?.data?.message) || 'Wystąpił błąd podczas wypożyczania.';
             setMessage(resMessage);
@@ -65,8 +75,6 @@ const RentalModal = ({ offer, onClose }) => {
         localStorage.setItem('user', JSON.stringify({ ...authService.getCurrentUser(), balance: updatedUser.balance }));
     };
 
-
-
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
@@ -80,7 +88,6 @@ const RentalModal = ({ offer, onClose }) => {
                             <input type="range" min="1" max="30" value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} className="form-range" />
                         </div>
 
-                        {/* === ZASTOSOWANIE REUŻYWALNEGO KOMPONENTU === */}
                         <div className="form-group">
                             <label>Adres dostawy</label>
                             <AddressSelection address={address} setAddress={setAddress} />

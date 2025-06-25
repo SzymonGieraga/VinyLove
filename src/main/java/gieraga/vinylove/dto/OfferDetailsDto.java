@@ -14,4 +14,5 @@ public class OfferDetailsDto {
     private String ownerProfileImageUrl;
     private Double averageRating;
     private int reviewCount;
+    private boolean isObserved;
 }

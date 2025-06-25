@@ -24,10 +24,10 @@ public class RentalController {
     }
 
     @PutMapping("/{rentalId}/status")
-    public ResponseEntity<Rental> updateStatus(
-            @PathVariable Long rentalId,
-            @RequestBody RentalStatus newStatus) {
-        Rental updatedRental = rentalService.updateRentalStatus(rentalId, newStatus);
-        return ResponseEntity.ok(updatedRental);
+    public ResponseEntity<RentalDto> updateStatus(
+                                                   @PathVariable Long rentalId,
+                                                   @RequestBody RentalStatus newStatus) {
+        RentalDto updatedRentalDto = rentalService.updateRentalStatus(rentalId, newStatus);
+        return ResponseEntity.ok(updatedRentalDto);
     }
 }

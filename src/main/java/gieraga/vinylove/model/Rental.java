@@ -40,4 +40,6 @@ public class Rental {
     @Column(nullable = false)
     private RentalStatus status;
 
+    private boolean reminderSent = false;
+
 }

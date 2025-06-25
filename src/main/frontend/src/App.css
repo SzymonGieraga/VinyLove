@@ -25,7 +25,7 @@ body.dark {
   --border-color: #444444;
   --header-bg-color: #333333;
   --shadow-color: rgba(0, 0, 0, 0.4);
-  --link-color: #1a44c1;
+  --link-color: #3273dc;
   --button-primary-bg: #4a8fff;
   --button-primary-text: #ffffff;
   --button-light-bg: #3a3a3a;
@@ -1272,4 +1272,273 @@ body {
 .button.is-success {
   background-color: var(--highlight-color);
   color: white;
+}
+
+.notification-bell-container {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+.notification-bell-container:hover {
+    background-color: var(--header-bg-color);
+}
+.notification-bell-container .bell-icon {
+    width: 24px;
+    height: 24px;
+    stroke: var(--text-color);
+    fill: none;
+    stroke-width: 2;
+}
+
+@keyframes ring-animation {
+    0%, 100% { transform: rotate(0); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+    20%, 40%, 60%, 80% { transform: rotate(10deg); }
+}
+
+.notification-bell-container.has-unread .bell-icon {
+    animation: ring-animation 1s ease-in-out;
+    transform-origin: top center;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--danger-color);
+    border-radius: 50%;
+    border: 2px solid var(--card-bg-color);
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 360px;
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+    overflow: hidden;
+}
+
+.notification-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.notification-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+.notification-item:last-child {
+    border-bottom: none;
+}
+.notification-item:hover {
+    background-color: var(--bg-color);
+}
+
+.notification-message {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.notification-date {
+    font-size: 0.8rem;
+    color: var(--text-light-color);
+}
+
+.notification-item-info {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--text-light-color);
+}
+
+.notification-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.faq-icon {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.faq-icon:hover {
+  background-color: var(--header-bg-color);
+  transform: scale(1.1);
+}
+
+.faq-section {
+  margin-bottom: 2rem;
+}
+.faq-section:last-child {
+  margin-bottom: 0;
+}
+
+.faq-question {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+}
+
+.faq-answer {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+.faq-list {
+  padding-left: 20px;
+  margin-top: 1rem;
+}
+
+.faq-list li {
+  margin-bottom: 0.5rem;
+}
+
+.form-footer-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-light-color);
+}
+
+.form-footer-link a {
+  color: var(--link-color);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.form-footer-link a:hover {
+  text-decoration: underline;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light-color);
+}
+
+.password-toggle-button svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-light-color);
+}
+
+.password-toggle-button:hover svg {
+  stroke: var(--text-color);
+}
+
+.form-control.has-toggle-button {
+  padding-right: 40px;
+}
+.offer-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.rent-button {
+  flex-grow: 1;
+}
+
+.observe-button {
+  flex-shrink: 0;
+  padding: 0.75rem;
+  background-color: var(--button-light-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.observe-button:hover {
+  background-color: var(--header-bg-color);
+}
+
+.observe-button.is-observed {
+  background-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border-color: var(--button-primary-bg);
+}
+
+.observe-button.is-observed:hover {
+  filter: brightness(110%);
+}
+
+.observe-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+.reward-codes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+.generator-section {
+  background-color: var(--header-bg-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+}
+.generator-section h3 {
+  margin-top: 0;
+}
+.codes-list-section tr.is-used {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+.codes-list-section tr.is-used button {
+  background-color: var(--text-light-color);
+  cursor: not-allowed;
 }

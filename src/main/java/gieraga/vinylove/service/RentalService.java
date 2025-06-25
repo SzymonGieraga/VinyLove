@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import gieraga.vinylove.service.NotificationService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -28,6 +28,7 @@ public class RentalService {
     private final AuthService authService;
     private final UserRepo userRepo;
     private final AddressRepo addressRepo;
+    private final NotificationService notificationService;
 
     private static final BigDecimal RENTAL_DEPOSIT = new BigDecimal("50.00");
 
@@ -87,6 +88,10 @@ public class RentalService {
         rental.setStatus(RentalStatus.REQUESTED);
         rental.setDeliveryAddress(deliveryAddress);
 
+        User owner = offer.getOwner();
+        String message = "Twoja oferta '" + offer.getTitle() + "' została wypożyczona przez " + renter.getUsername() + ".";
+        notificationService.createNotification(owner, message, NotificationType.NEW_RENTAL, offer.getId());
+
         Rental savedRental = rentalRepo.save(rental);
 
         return mapToDto(savedRental);
@@ -104,7 +109,7 @@ public class RentalService {
     }
 
     @Transactional
-    public Rental updateRentalStatus(Long rentalId, RentalStatus newStatus) {
+    public RentalDto updateRentalStatus(Long rentalId, RentalStatus newStatus) { // <-- ZMIANA 1: Typ zwracany to RentalDto
         User currentUser = authService.getAuthenticatedUser();
         Rental rental = rentalRepo.findById(rentalId).orElseThrow(() -> new EntityNotFoundException("Wypożyczenie nie znalezione."));
 
@@ -122,7 +127,8 @@ public class RentalService {
             recordOfferRepo.save(offer);
         }
 
-        return rentalRepo.save(rental);
+        Rental updatedRental = rentalRepo.save(rental);
+        return mapToDto(updatedRental);
     }
 
     private void validateStatusChange(Rental rental, RentalStatus newStatus, User user) {

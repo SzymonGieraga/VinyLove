@@ -1,11 +1,14 @@
 package gieraga.vinylove.service;
 
+import gieraga.vinylove.converter.OfferConverter;
 import gieraga.vinylove.converter.ReviewConverter;
 import gieraga.vinylove.converter.UserConverter;
+import gieraga.vinylove.dto.AdminOfferDto;
 import gieraga.vinylove.dto.AdminRecordReviewDto;
 import gieraga.vinylove.dto.AdminUserDto;
 import gieraga.vinylove.dto.AdminUserReviewDto;
 import gieraga.vinylove.model.User;
+import gieraga.vinylove.repo.RecordOfferRepo;
 import gieraga.vinylove.repo.RecordReviewRepo;
 import gieraga.vinylove.repo.UserRepo;
 import gieraga.vinylove.repo.UserReviewRepo;
@@ -26,6 +29,8 @@ public class AdminService {
     private final RecordReviewRepo recordReviewRepo;
     private final UserReviewRepo userReviewRepo;
     private final ReviewService reviewService;
+    private final RecordOfferRepo recordOfferRepo;
+    private final OfferConverter offerConverter;
 
     @Transactional(readOnly = true)
     public Page<AdminUserDto> getAllUsers(Pageable pageable) {
@@ -60,6 +65,11 @@ public class AdminService {
     @Transactional
     public void deleteUserReview(Long reviewId) {
         reviewService.deleteUserReview(reviewId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdminOfferDto> getAllOffers(Pageable pageable) {
+        return recordOfferRepo.findAll(pageable).map(offerConverter::toAdminDto);
     }
 
 }

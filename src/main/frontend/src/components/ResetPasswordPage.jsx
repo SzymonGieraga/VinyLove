@@ -15,7 +15,6 @@ const ResetPasswordPage = () => {
         setMessage('');
         setSuccessful(false);
 
-        // Walidacja po stronie klienta
         if (newPassword !== confirmPassword) {
             setMessage('Nowe hasła nie są identyczne.');
             return;

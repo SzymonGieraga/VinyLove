@@ -37,6 +37,9 @@ const ProfileDropdown = ({ user, onLogout, onToggleTheme, currentTheme }) => {
                     <Link to="/my-profile" className="dropdown-item" onClick={() => setIsOpen(false)}>
                         Przejdź do profilu
                     </Link>
+                    <Link to="/fund-account" className="dropdown-item" onClick={() => setIsOpen(false)}>
+                        Doładuj konto
+                    </Link>
                     <Link to="/reset-password" className="dropdown-item" onClick={() => setIsOpen(false)}>
                         Resetuj hasło
                     </Link>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import userService from '../services/userService';
 import authService from '../services/authService';
 import UserOffersTab from './UserOffersTab';
@@ -8,15 +8,20 @@ import UserActionModal from './UserActionModal';
 import UserReviewForm from "./UserReviewForm";
 import EditProfileForm from './EditProfileForm';
 import ProfileRentalsTab from "./ProfileRentalTab";
+import SavedOffersTab from './SavedOffersTab';
+import RewardCodesTab from './RewardCodesTab';
+
 
 const UserProfilePage = () => {
     const { username } = useParams();
+    const location = useLocation();
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('offers');
     const [isOwner, setIsOwner] = useState(false);
     const [isActionModalOpen, setIsActionModalOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+
+    const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'offers');
 
     const fetchProfileData = useCallback(() => {
         setLoading(true);
@@ -76,7 +81,6 @@ const UserProfilePage = () => {
                         <h1>{username}</h1>
                         <p>{description || "Ten użytkownik nie dodał jeszcze opisu."}</p>
                     </div>
-                    {/* Przyciski akcji w nagłówku */}
                     <div className="profile-actions">
                         {isOwner ? (
                             <button className="button" onClick={() => setIsActionModalOpen(true)}>Edytuj profil</button>
@@ -90,6 +94,12 @@ const UserProfilePage = () => {
                     <button className={`tab-button ${activeTab === 'offers' ? 'active' : ''}`} onClick={() => setActiveTab('offers')}>Oferty</button>
                     <button className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`} onClick={() => setActiveTab('reviews')}>Recenzje</button>
                     <button className={`tab-button ${activeTab === 'rentals' ? 'active' : ''}`} onClick={() => setActiveTab('rentals')}>Wypożyczenia</button>
+                    {isOwner && (
+                        <button className={`tab-button ${activeTab === 'saved' ? 'active' : ''}`} onClick={() => setActiveTab('saved')}>Zapisane</button>
+                    )}
+                    {isOwner && (
+                        <button className={`tab-button ${activeTab === 'rewards' ? 'active' : ''}`} onClick={() => setActiveTab('rewards')}>Kody Rabatowe</button>
+                    )}
                 </div>
 
                 <main className="profile-content">
@@ -108,6 +118,9 @@ const UserProfilePage = () => {
                         />
                     )}
                     {activeTab === 'rentals' && <ProfileRentalsTab username={username} isOwner={isOwner} />}
+                    {activeTab === 'saved' && isOwner && <SavedOffersTab />}
+                    {activeTab === 'rewards' && isOwner && <RewardCodesTab />}
+
                 </main>
             </div>
         </>

@@ -11,10 +11,14 @@ import OfferDetailsPage from "./components/OfferDetailsPage";
 import UserProfilePage from './components/UserProfilePage';
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import AdminPage from "./components/AdminPage";
+import NotificationBell from './components/NotificationBell';
+import FaqModal from "./components/FagModal";
+import FundAccountPage from './components/FundAccountPage';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [isFaqModalOpen, setIsFaqModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -42,8 +46,11 @@ function App() {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
+
   return (
       <Router>
+        <FaqModal isOpen={isFaqModalOpen} onClose={() => setIsFaqModalOpen(false)} />
+
         <div>
           <nav className="navbar">
             <div className="navbar-brand">
@@ -52,12 +59,22 @@ function App() {
             <div className="navbar-menu">
               <div className="navbar-start">
               </div>
+
               {currentUser ? (
                   <div className="navbar-end">
+                    <div className="navbar-item">
+                        <button className="faq-icon" onClick={() => setIsFaqModalOpen(true)} title="Często zadawane pytania">?</button>
+                    </div>
+                    <div className="navbar-item">
+                      <NotificationBell />
+                    </div>
                     <ProfileDropdown user={currentUser} onLogout={handleLogout} onToggleTheme={toggleTheme} currentTheme={theme} />
                   </div>
               ) : (
                   <div className="navbar-end">
+                    <div className="navbar-item">
+                      <button className="faq-icon" onClick={() => setIsFaqModalOpen(true)} title="Często zadawane pytania">?</button>
+                    </div>
                     <div className="navbar-item">
                       <Link to="/login" className="button is-light">Logowanie</Link>
                     </div>
@@ -77,7 +94,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/add-offer" element={currentUser ? <AddOfferPage /> : <Navigate to="/login" />} />
               <Route path="/offer/:id" element={<OfferDetailsPage />} />
-
+              <Route path="/fund-account" element={currentUser ? <FundAccountPage /> : <Navigate to="/login" />} />
               <Route path="/my-profile" element={currentUser ? <Navigate to={`/profile/${currentUser.username}`} /> : <Navigate to="/login" />} />
               <Route path="/profile/:username" element={<UserProfilePage />} />
 

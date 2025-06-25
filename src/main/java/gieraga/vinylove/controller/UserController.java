@@ -1,6 +1,6 @@
 package gieraga.vinylove.controller;
 
-import gieraga.vinylove.dto.*; // Zmieniono na wildcard dla czystości
+import gieraga.vinylove.dto.*;
 import gieraga.vinylove.service.RentalService;
 import gieraga.vinylove.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -57,5 +57,11 @@ public class UserController {
     @GetMapping("/my-addresses")
     public ResponseEntity<List<AddressDto>> getMyAddresses() {
         return ResponseEntity.ok(userService.getAddressesForCurrentUser());
+    }
+
+    @GetMapping("/me/observed")
+    public ResponseEntity<List<UserOfferDto>> getMyObservedOffers() {
+        List<UserOfferDto> observedOffers = userService.getObservedOffersForCurrentUser();
+        return ResponseEntity.ok(observedOffers);
     }
 }
