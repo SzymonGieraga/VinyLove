@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import gieraga.vinylove.service.NotificationService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 

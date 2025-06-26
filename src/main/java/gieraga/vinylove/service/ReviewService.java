@@ -10,8 +10,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import gieraga.vinylove.dto.SimpleReviewDto;
-
-import gieraga.vinylove.dto.CreateReviewDto;
 import gieraga.vinylove.dto.CreateUserReviewDto;
 
 import java.time.LocalDateTime;
